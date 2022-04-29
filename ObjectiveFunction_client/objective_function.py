@@ -1,6 +1,7 @@
 import logging
 from typing import Mapping
 from pathlib import Path
+import numpy
 
 from .proxy import Proxy
 from .parameter import Parameter
@@ -101,6 +102,11 @@ class ObjectiveFunction:
                 if error:
                     raise RuntimeError('configuration does not match database')
 
+        self._lb = None
+        self._ub = None
+
+        self._scenario = None
+
     @property
     def basedir(self):
         """the basedirectory"""
@@ -138,6 +144,68 @@ class ObjectiveFunction:
     def constant_parameters(self):
         """the constant parameters"""
         return self._constant_parameters
+
+    def getLowerBounds(self):
+        """an array containing the lower bounds"""
+        if self._lb is None:
+            self._lb = []
+            for p in self._active_paramlist:
+                self._lb.append(self.parameters[p].minv)
+            self._lb = numpy.array(self._lb)
+        return self._lb
+
+    def getUpperBounds(self):
+        """an array containing the upper bounds"""
+        if self._ub is None:
+            self._ub = []
+            for p in self._active_paramlist:
+                self._ub.append(self.parameters[p].maxv)
+            self._ub = numpy.array(self._ub)
+        return self._ub
+
+    @property
+    def lower_bounds(self):
+        """an array containing the lower bounds"""
+        return self.getLowerBounds()
+
+    @property
+    def upper_bounds(self):
+        """an array containing the upper bounds"""
+        return self.getUpperBounds()
+
+    def values2params(self, values):
+        """create a dictionary of parameter values from list of values
+        :param values: a list/tuple of values
+        :return: a dictionary of parameters
+        """
+        params = {}
+        if len(values) == len(self.parameters):
+            for i, p in enumerate(self._paramlist):
+                params[p] = values[i]
+        elif len(values) == len(self.active_parameters):
+            for i, p in enumerate(self._active_paramlist):
+                params[p] = values[i]
+            for p in self.constant_parameters:
+                params[p] = self.constant_parameters[p].value
+        else:
+            raise RuntimeError('Wrong number of parameters')
+
+        return params
+
+    def params2values(self, params, include_constant=True):
+        """create an array of values from a dictionary of parameters
+        :param params: a dictionary of parameters
+        :param include_constant: set to False to exclude constant parameters
+        :return: a array of values
+        """
+        values = []
+        for p in self._paramlist:
+            if self.parameters[p].constant:
+                if include_constant:
+                    values.append(self.parameters[p].value)
+            else:
+                values.append(params[p])
+        return numpy.array(values)
 
 
 if __name__ == '__main__':
