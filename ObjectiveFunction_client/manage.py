@@ -1,6 +1,9 @@
 import argparse
 import requests
 from requests.auth import HTTPBasicAuth
+from pathlib import Path
+
+from .config import ObjFunConfig
 
 
 def studies(appname, password, url_base='http://localhost:5000/api/'):
@@ -32,9 +35,26 @@ def main():
                         help="the ObjectiveFunction app")
     parser.add_argument('-p', '--password',
                         help="the password for the app")
+    parser.add_argument('-c', '--config', type=Path,
+                        help="config file to read")
     args = parser.parse_args()
 
-    for s in studies(args.app, args.password, args.baseurl):
+    app = None
+    password = None
+    baseurl = None
+    if args.config is not None:
+        cfg = ObjFunConfig(args.config)
+        app = cfg.app
+        password = cfg.secret
+        baseurl = cfg.baseurl
+    if args.app is not None:
+        app = args.app
+    if args.password is not None:
+        password = args.password
+    if args.baseurl is not None:
+        baseurl = args.baseurl
+
+    for s in studies(app, password, baseurl):
         print(s)
 
 
