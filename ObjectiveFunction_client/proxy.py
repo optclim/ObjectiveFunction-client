@@ -69,31 +69,19 @@ class Proxy:
     def get(self, url, **kwds):
         response = self.session.get(
             self.url(url), **kwds, auth=self.token_auth)
-        if response.status_code != 200:
-            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
-                response.status_code, response.content))
         return response
 
     def post(self, url, **kwds):
         response = self.session.post(
             self.url(url), **kwds, auth=self.token_auth)
-        if response.status_code != 204:
-            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
-                response.status_code, response.content))
         return response
 
     def put(self, url, **kwds):
         response = self.session.put(
             self.url(url), **kwds, auth=self.token_auth)
-        if response.status_code != 204:
-            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
-                response.status_code, response.content))
         return response
 
     def delete(self, url, **kwds):
         response = self.session.delete(
             self.url(url), **kwds, auth=self.token_auth)
-        if response.status_code != 204:
-            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
-                response.status_code, response.content))
         return response

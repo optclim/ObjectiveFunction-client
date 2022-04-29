@@ -20,6 +20,9 @@ def studies(appname, password, url_base='http://localhost:5000/api/'):
 
     proxy = Proxy(appname, password, url_base=url_base)
     response = proxy.get('studies')
+    if response.status_code != 200:
+        raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+            response.status_code, response.content))
     return response.json()['data']
 
 
