@@ -72,6 +72,11 @@ class Parameter(ABC, Generic[T]):
         """transform from the internal storage format"""
         pass
 
+    @property
+    def to_dict(self):
+        return {'minv': self.minv,
+                'maxv': self.maxv}
+
     def __call__(self, value: T) -> T:
         """check the value is within the bounds and apply any rounding"""
         return self.inv_transform(self.transform(value))
@@ -121,6 +126,12 @@ class ParameterInt(Parameter[int]):
     def inv_transform(self, dbval: int) -> int:
         self.check_value(dbval)
         return dbval
+
+    @property
+    def to_dict(self):
+        d = super().to_dict
+        d['type'] = 'int'
+        return d
 
 
 class ParameterFloat(Parameter[float]):
@@ -184,3 +195,10 @@ class ParameterFloat(Parameter[float]):
         value = self.minv + dbval * self.resolution
         self.check_value(value)
         return value
+
+    @property
+    def to_dict(self):
+        d = super().to_dict
+        d['type'] = 'float'
+        d['resolution'] = self.resolution
+        return d
