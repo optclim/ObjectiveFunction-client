@@ -106,6 +106,8 @@ class ObjectiveFunction:
         self._ub = None
 
         self._scenario = None
+        if scenario is not None:
+            self.setDefaultScenario(scenario)
 
     @property
     def basedir(self):
@@ -206,6 +208,23 @@ class ObjectiveFunction:
             else:
                 values.append(params[p])
         return numpy.array(values)
+
+    def setDefaultScenario(self, name):
+        """set the default scenario
+
+        :param name: name of scenario
+        :type name: str
+        """
+        response = self._proxy.post(f'studies/{self.study}/create_scenario',
+                                    json={'name': name})
+        if response.status_code == 201:
+            self._log.debug(f'created scenario {name}')
+        elif response.status_code == 409:
+            self._log.debug(f'found scenario {name}')
+        else:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
+        self._scenario = name
 
 
 if __name__ == '__main__':
