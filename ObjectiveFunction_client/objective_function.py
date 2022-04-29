@@ -59,12 +59,47 @@ class ObjectiveFunction:
         self._prelim = prelim
         self._study = study
 
-        response = self._proxy.get('studies/' + study)
+        param_dict = {}
+        for p in parameters:
+            param_dict[p] = parameters[p].to_dict
+
+        response = self._proxy.get(f'studies/{study}/parameters')
         if response.status_code == 404:
+            self._log.debug(f'creating study {study}')
             response = self._proxy.post('create_study',
-                                        json={'name': self.study})
+                                        json={
+                                            'name': self.study,
+                                            'parameters': param_dict})
             if response.status_code != 201:
                 raise RuntimeError(f'creating study {study}')
+        elif response.status_code == 200:
+            self._log.debug(f'loading study {study}')
+            remote_param = response.json()
+            error = False
+            if self.num_params != len(remote_param):
+                self._log.error(
+                    f'number of parameters in {study} does not match')
+                error = True
+            else:
+                for p in remote_param:
+                    if p not in param_dict:
+                        self._log.error(
+                            f'parameter {p} missing from configuration')
+                        error = True
+                        continue
+                    for k in remote_param[p]:
+                        if k not in param_dict[p]:
+                            self._log.error(
+                                f'key {k} missing from configuration'
+                                f' of parameter {p}')
+                            error = True
+                            continue
+                        if param_dict[p][k] != remote_param[p][k]:
+                            self._log.error(
+                                f'key {k} of parameter {p} does not match')
+                            error = True
+                if error:
+                    raise RuntimeError('configuration does not match database')
 
     @property
     def basedir(self):
