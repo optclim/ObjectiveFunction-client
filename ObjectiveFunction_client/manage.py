@@ -1,9 +1,8 @@
 import argparse
-import requests
-from requests.auth import HTTPBasicAuth
 from pathlib import Path
 
 from .config import ObjFunConfig
+from .proxy import Proxy
 
 
 def studies(appname, password, url_base='http://localhost:5000/api/'):
@@ -19,11 +18,8 @@ def studies(appname, password, url_base='http://localhost:5000/api/'):
     :rtype: dict
     """
 
-    auth = HTTPBasicAuth(appname, password)
-    response = requests.get(url_base + 'studies', auth=auth)
-    if response.status_code != 200:
-        raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
-            response.status_code, response.content))
+    proxy = Proxy(appname, password, url_base=url_base)
+    response = proxy.get('studies')
     return response.json()['data']
 
 
