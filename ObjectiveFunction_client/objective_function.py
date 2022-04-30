@@ -268,7 +268,9 @@ class ObjectiveFunction:
         if response.status_code != 201:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
-        return response.json()
+        run = response.json()
+        run['state'] = LookupState.__members__[run['state']]
+        return run
 
     def lookup_run(self, parameters, scenario=None):
         """look up parameters
