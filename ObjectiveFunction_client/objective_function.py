@@ -112,7 +112,7 @@ class ObjectiveFunction:
         self._scenario = None
         self._runtype = runtype
         if scenario is not None:
-            self.setDefaultScenario(scenario, runtype)
+            self.setDefaultScenario(scenario)
 
     @property
     def basedir(self):
@@ -214,13 +214,16 @@ class ObjectiveFunction:
                 values.append(params[p])
         return numpy.array(values)
 
-    def setDefaultScenario(self, name, runtype):
+    def setDefaultScenario(self, name, runtype=None):
         """set the default scenario
 
         :param name: name of scenario
         :type name: str
         :param runtype: the type of the run
         """
+        if runtype is None:
+            runtype = self._runtype
+
         response = self._proxy.post(f'studies/{self.study}/create_scenario',
                                     json={'name': name,
                                           'runtype': runtype.name})
