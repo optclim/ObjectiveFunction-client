@@ -69,10 +69,10 @@ if __name__ == '__main__':
 
     cfg = ObjFunConfig(Path(sys.argv[1]))
 
-    objfun = ObjectiveFunctionResidual(cfg.app, cfg.secret,
-                                     "test_study", Path('/tmp'),
-                                     params, scenario="test_scenario_residual",
-                                     url_base=cfg.baseurl)
+    objfun = ObjectiveFunctionResidual(
+        cfg.app, cfg.secret, "test_study", Path('/tmp'),
+        params, scenario="test_scenario_residual",
+        url_base=cfg.baseurl)
 
     pset1 = {'a': 0, 'b': 1, 'c': -2}
     pset2 = {'a': 0.5, 'b': 1, 'c': -2}
