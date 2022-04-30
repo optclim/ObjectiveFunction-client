@@ -268,14 +268,17 @@ class ObjectiveFunction:
 
         results = self.lookup_run(parameters, scenario=scenario)
 
-        if results['state'] == 'waiting':
-            raise Waiting
-        status = LookupState.__members__[results['state']]
-        if status == LookupState.PROVISIONAL:
-            raise PreliminaryRun
-        elif status == LookupState.NEW:
-            raise NewRun
+        if 'status' in results:
+            if results['status'] == 'waiting':
+                raise Waiting
+            elif results['status'] == 'provisional':
+                raise PreliminaryRun
+            elif results['status'] == 'new':
+                raise NewRun
+            else:
+                raise RuntimeError(f'unknown status {results["status"]}')
 
+        results['state'] = LookupState.__members__[results['state']]
         return results
 
 
