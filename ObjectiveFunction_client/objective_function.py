@@ -5,7 +5,8 @@ import numpy
 
 from .proxy import Proxy
 from .parameter import Parameter
-from .common import RunType
+from .common import RunType, LookupState
+from .common import PreliminaryRun, NewRun, Waiting
 
 
 class ObjectiveFunction:
@@ -233,6 +234,47 @@ class ObjectiveFunction:
         self._scenario = name
         self._runtype = runtype
 
+    def lookup_run(self, parameters, scenario=None):
+        """look up parameters
+
+        :param parmeters: dictionary containing parameter values
+        :param scenario: the name of the scenario
+        """
+
+        if scenario is None:
+            scenario = self._scenario
+
+        response = self._proxy.post(
+            f'studies/{self.study}/scenarios/{scenario}/lookup_run',
+            json=parameters)
+        if response.status_code != 201:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
+        return response.json()
+
+    def get_result(self, parameters, scenario=None):
+        """look up parameters
+        :param parms: dictionary containing parameter values
+        :param scenario: the name of the scenario
+        :raises PreliminaryRun: when lookup fails
+        :raises NewRun: when preliminary run has been called again
+        :raises Waiting: when completed entries are required
+        :return: returns the value if lookup succeeds and state is completed
+                 return a random value otherwise
+        """
+
+        results = self.lookup_run(parameters, scenario=scenario)
+
+        if results['state'] == 'waiting':
+            raise Waiting
+        status = LookupState.__members__[results['state']]
+        if status == LookupState.PROVISIONAL:
+            raise PreliminaryRun
+        elif status == LookupState.NEW:
+            raise NewRun
+
+        return results
+
 
 if __name__ == '__main__':
     import sys
@@ -251,3 +293,8 @@ if __name__ == '__main__':
                                "test_study", Path('/tmp'),
                                params, scenario="test_scenario",
                                url_base=cfg.baseurl)
+
+    pset1 = {'a': 0, 'b': 1, 'c': -2}
+    pset2 = {'a': 0.5, 'b': 1, 'c': -2}
+    #print(objfun.get_result(pset1))
+    print(objfun.get_result(pset2))
