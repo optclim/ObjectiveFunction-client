@@ -7,7 +7,7 @@ import logging
 
 from .objective_function import ObjectiveFunction
 from .parameter import Parameter
-from .common import RunType
+from .common import RunType, LookupState
 
 
 class ObjectiveFunctionMisfit(ObjectiveFunction):
@@ -54,6 +54,22 @@ class ObjectiveFunctionMisfit(ObjectiveFunction):
         :type name: str
         """
         return super().setDefaultScenario(name, runtype=RunType.MISFIT)
+
+    def get_result(self, parameters, scenario=None):
+        """look up parameters
+        :param parms: dictionary containing parameter values
+        :param scenario: the name of the scenario
+        :raises PreliminaryRun: when lookup fails
+        :raises NewRun: when preliminary run has been called again
+        :raises Waiting: when completed entries are required
+        :return: returns the value if lookup succeeds and state is completed
+                 return a random value otherwise
+        """
+
+        result = super().get_result(parameters, scenario=scenario)
+        if result['state'] != LookupState.COMPLETED:
+            result['misfit'] = random.random()
+        return result
 
 
 if __name__ == '__main__':

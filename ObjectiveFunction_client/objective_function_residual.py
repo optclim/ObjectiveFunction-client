@@ -1,13 +1,14 @@
-__all__ = ['ObjectiveFunctionMisfit']
+__all__ = ['ObjectiveFunctionResidual']
 
-import random
+import numpy.random
+import numpy
 from typing import Mapping
 from pathlib import Path
 import logging
 
 from .objective_function import ObjectiveFunction
 from .parameter import Parameter
-from .common import RunType
+from .common import RunType, LookupState
 
 
 class ObjectiveFunctionResidual(ObjectiveFunction):
@@ -47,6 +48,16 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
                          parameters, scenario=scenario, prelim=prelim,
                          url_base=url_base, runtype=RunType.PATH)
 
+        self._num_residuals = None
+
+    @property
+    def num_residuals(self):
+        """the number of residuals"""
+        if self._num_residuals is None:
+            return 50
+        else:
+            return self._num_residuals
+
     def setDefaultScenario(self, name):
         """set the default scenario
 
@@ -54,6 +65,27 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
         :type name: str
         """
         return super().setDefaultScenario(name, runtype=RunType.PATH)
+
+    def get_result(self, parameters, scenario=None):
+        """look up parameters
+        :param parms: dictionary containing parameter values
+        :param scenario: the name of the scenario
+        :raises PreliminaryRun: when lookup fails
+        :raises NewRun: when preliminary run has been called again
+        :raises Waiting: when completed entries are required
+        :return: returns the value if lookup succeeds and state is completed
+                 return a random value otherwise
+        """
+
+        result = super().get_result(parameters, scenario=scenario)
+        if result['state'] != LookupState.COMPLETED:
+            result['residual'] = numpy.random.rand(self.num_residuals)
+        else:
+            with open(result['path'], 'rb') as f:
+                result['residual'] = numpy.load(f)
+            if self._num_residuals is None:
+                self._num_residuals = result['residual'].size
+        return result
 
 
 if __name__ == '__main__':
