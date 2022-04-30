@@ -5,21 +5,29 @@ from .config import ObjFunConfig
 from .proxy import Proxy
 
 
-def studies(appname, password, url_base='http://localhost:5000/api/'):
+def studies(proxy):
     """get a list of runs
-    :param appname: appname for connecting to taskfarm server
-    :type appname: str
-    :param password: password for connecting to taskfarm server
-    :type password: str
-    :param url_base: base URL for taskfarm server API,
-                     defaults to 'http://localhost:5000/api/'
-    :type url_base: str
-    :return: list of runs
-    :rtype: dict
     """
 
-    proxy = Proxy(appname, password, url_base=url_base)
     response = proxy.get('studies')
+    if response.status_code != 200:
+        raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+            response.status_code, response.content))
+    return response.json()['data']
+
+
+def scenarios(proxy, study):
+
+    response = proxy.get(f'studies/{study}/scenarios')
+    if response.status_code != 200:
+        raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+            response.status_code, response.content))
+    return response.json()['data']
+
+
+def runs(proxy, study, scenario):
+
+    response = proxy.get(f'studies/{study}/scenarios/{scenario}/runs')
     if response.status_code != 200:
         raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
             response.status_code, response.content))
@@ -36,6 +44,10 @@ def main():
                         help="the password for the app")
     parser.add_argument('-c', '--config', type=Path,
                         help="config file to read")
+    parser.add_argument('-s', '--study',
+                        help="get all scenarios for a particular study")
+    parser.add_argument('-S', '--scenario',
+                        help="get all runs for a particular scenario")
     args = parser.parse_args()
 
     app = None
@@ -53,8 +65,18 @@ def main():
     if args.baseurl is not None:
         baseurl = args.baseurl
 
-    for s in studies(app, password, baseurl):
-        print(s)
+    proxy = Proxy(app, password, url_base=baseurl)
+
+    if args.study is not None:
+        if args.scenario:
+            for r in runs(proxy, args.study, args. scenario):
+                print(r)
+        else:
+            for s in scenarios(proxy, args.study):
+                print(s)
+    else:
+        for s in studies(proxy):
+            print(s)
 
 
 if __name__ == '__main__':
