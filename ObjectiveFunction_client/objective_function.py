@@ -237,6 +237,22 @@ class ObjectiveFunction:
         self._scenario = name
         self._runtype = runtype
 
+    def get_run_by_id(self, runid, scenario=None):
+        """get a run with a particular ID
+
+        :param runid: the run ID
+        :param scenario: the name of the scenario
+        """
+        if scenario is None:
+            scenario = self._scenario
+
+        response = self._proxy.get(
+            f'studies/{self.study}/scenarios/{scenario}/runs/{runid}')
+        if response.status_code != 200:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
+        return response.json()
+
     def get_run(self, parameters, scenario=None):
         """get a run with a particular parameter set
 
@@ -323,4 +339,5 @@ if __name__ == '__main__':
     #print(objfun.get_result(pset1))
     print(objfun.get_result(pset2))
     print('get_run', objfun.get_run(pset2))
+    print('get_run_id', objfun.get_run_by_id(1))
     #print(objfun.get_run(pset3))
