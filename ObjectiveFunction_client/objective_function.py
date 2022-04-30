@@ -237,6 +237,23 @@ class ObjectiveFunction:
         self._scenario = name
         self._runtype = runtype
 
+    def get_run(self, parameters, scenario=None):
+        """get a run with a particular parameter set
+
+        :param parmeters: dictionary containing parameter values
+        :param scenario: the name of the scenario
+        """
+        if scenario is None:
+            scenario = self._scenario
+
+        response = self._proxy.post(
+            f'studies/{self.study}/scenarios/{scenario}/get_run',
+            json={'parameters': parameters})
+        if response.status_code != 201:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
+        return response.json()
+
     def lookup_run(self, parameters, scenario=None):
         """look up parameters
 
@@ -302,5 +319,8 @@ if __name__ == '__main__':
 
     pset1 = {'a': 0, 'b': 1, 'c': -2}
     pset2 = {'a': 0.5, 'b': 1, 'c': -2}
+    pset3 = {'a': 0.5, 'b': 1.5, 'c': -2}
     #print(objfun.get_result(pset1))
     print(objfun.get_result(pset2))
+    print('get_run', objfun.get_run(pset2))
+    #print(objfun.get_run(pset3))
