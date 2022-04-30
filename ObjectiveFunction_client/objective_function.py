@@ -5,6 +5,7 @@ import numpy
 
 from .proxy import Proxy
 from .parameter import Parameter
+from .common import RunType
 
 
 class ObjectiveFunction:
@@ -22,6 +23,8 @@ class ObjectiveFunction:
         permissible parameter values
     :param scenario: name of the default scenario
     :type scenario: str
+    :param runtype: the type of the run
+    :type runtype: RunType
     :param prelim: when True failed parameter look up raises a
                    PreliminaryRun exception otherwise a
                    NewRun exception is raised. Default=True
@@ -33,7 +36,7 @@ class ObjectiveFunction:
     def __init__(self, appname: str, secret: str,
                  study: str, basedir: Path,  # noqa C901
                  parameters: Mapping[str, Parameter],
-                 scenario=None, prelim=True,
+                 scenario=None, runtype=RunType.MISFIT, prelim=True,
                  url_base='http://localhost:5000/api/'):
         """constructor"""
 
@@ -106,8 +109,9 @@ class ObjectiveFunction:
         self._ub = None
 
         self._scenario = None
+        self._runtype = runtype
         if scenario is not None:
-            self.setDefaultScenario(scenario)
+            self.setDefaultScenario(scenario, runtype)
 
     @property
     def basedir(self):
@@ -209,14 +213,16 @@ class ObjectiveFunction:
                 values.append(params[p])
         return numpy.array(values)
 
-    def setDefaultScenario(self, name):
+    def setDefaultScenario(self, name, runtype):
         """set the default scenario
 
         :param name: name of scenario
         :type name: str
+        :param runtype: the type of the run
         """
         response = self._proxy.post(f'studies/{self.study}/create_scenario',
-                                    json={'name': name})
+                                    json={'name': name,
+                                          'runtype': runtype.name})
         if response.status_code == 201:
             self._log.debug(f'created scenario {name}')
         elif response.status_code == 409:
@@ -225,6 +231,7 @@ class ObjectiveFunction:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
         self._scenario = name
+        self._runtype = runtype
 
 
 if __name__ == '__main__':
