@@ -249,7 +249,7 @@ class ObjectiveFunction:
 
         response = self._proxy.post(
             f'studies/{self.study}/scenarios/{scenario}/lookup_run',
-            json=parameters)
+            json={'parameters': parameters})
         if response.status_code != 201:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
