@@ -77,15 +77,15 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
                  return a random value otherwise
         """
 
-        result = super().get_result(parameters, scenario=scenario)
-        if result['state'] != LookupState.COMPLETED:
-            result['residual'] = numpy.random.rand(self.num_residuals)
+        run = super().get_result(parameters, scenario=scenario)
+        if run['state'] != LookupState.COMPLETED:
+            run['residual'] = numpy.random.rand(self.num_residuals)
         else:
-            with open(result['path'], 'rb') as f:
-                result['residual'] = numpy.load(f)
+            with open(run['path'], 'rb') as f:
+                run['residual'] = numpy.load(f)
             if self._num_residuals is None:
-                self._num_residuals = result['residual'].size
-        return result
+                self._num_residuals = run['residual'].size
+        return run
 
 
 if __name__ == '__main__':

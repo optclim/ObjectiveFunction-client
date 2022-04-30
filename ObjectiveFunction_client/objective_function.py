@@ -266,20 +266,20 @@ class ObjectiveFunction:
                  return a random value otherwise
         """
 
-        results = self.lookup_run(parameters, scenario=scenario)
+        run = self.lookup_run(parameters, scenario=scenario)
 
-        if 'status' in results:
-            if results['status'] == 'waiting':
+        if 'status' in run:
+            if run['status'] == 'waiting':
                 raise Waiting
-            elif results['status'] == 'provisional':
+            elif run['status'] == 'provisional':
                 raise PreliminaryRun
-            elif results['status'] == 'new':
+            elif run['status'] == 'new':
                 raise NewRun
             else:
-                raise RuntimeError(f'unknown status {results["status"]}')
+                raise RuntimeError(f'unknown status {run["status"]}')
 
-        results['state'] = LookupState.__members__[results['state']]
-        return results
+        run['state'] = LookupState.__members__[run['state']]
+        return run
 
 
 if __name__ == '__main__':

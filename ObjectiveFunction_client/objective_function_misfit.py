@@ -66,10 +66,10 @@ class ObjectiveFunctionMisfit(ObjectiveFunction):
                  return a random value otherwise
         """
 
-        result = super().get_result(parameters, scenario=scenario)
-        if result['state'] != LookupState.COMPLETED:
-            result['misfit'] = random.random()
-        return result
+        run = super().get_result(parameters, scenario=scenario)
+        if run['state'] != LookupState.COMPLETED:
+            run['misfit'] = random.random()
+        return run
 
 
 if __name__ == '__main__':
