@@ -105,6 +105,9 @@ class ObjectiveFunction:
                             error = True
                 if error:
                     raise RuntimeError('configuration does not match database')
+        else:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
 
         self._lb = None
         self._ub = None
@@ -263,7 +266,9 @@ class ObjectiveFunction:
             scenario = self._scenario
         response = self._proxy.get(
             f'studies/{self.study}/scenarios/{scenario}/runs/{runid}/state')
-        if response.status_code != 200:
+        if response.status_code == 404:
+            raise LookupError(f'no run with ID {runid}')
+        elif response.status_code != 200:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
         result = response.json()['state']
@@ -280,7 +285,9 @@ class ObjectiveFunction:
         response = self._proxy.put(
             f'studies/{self.study}/scenarios/{scenario}/runs/{runid}/state',
             json={'state': state.name})
-        if response.status_code != 201:
+        if response.status_code == 404:
+            raise LookupError(f'no run with ID {runid}')
+        elif response.status_code != 201:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
 
