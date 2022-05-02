@@ -42,3 +42,14 @@ def paramSet():
             'ai': ParameterInt(1, 0, 2),
             'bi': ParameterInt(1, 1, 2),
             'ci': ParameterInt(2, 0, 3)}
+
+
+@pytest.fixture
+def baseurl():
+    return 'http://testlocation.org/api/'
+
+
+@pytest.fixture
+def request_token(requests_mock, baseurl):
+    requests_mock.register_uri(
+        'GET', baseurl + 'token', json={'token': 'some_token'})
