@@ -253,6 +253,37 @@ class ObjectiveFunction:
                 response.status_code, response.content))
         return response.json()
 
+    def getState(self, runid, scenario=None):
+        """get state of a particular run
+
+        :param runid: the run ID
+        :param scenario: the name of the scenario
+        """
+        if scenario is None:
+            scenario = self._scenario
+        response = self._proxy.get(
+            f'studies/{self.study}/scenarios/{scenario}/runs/{runid}/state')
+        if response.status_code != 200:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
+        result = response.json()['state']
+        return LookupState.__members__[result]
+
+    def setState(self, runid, state, scenario=None):
+        """set the state of run
+        :param runid: ID of run
+        :param state: the new state
+        :param scenario: the name of the scenario
+        """
+        if scenario is None:
+            scenario = self._scenario
+        response = self._proxy.put(
+            f'studies/{self.study}/scenarios/{scenario}/runs/{runid}/state',
+            json={'state': state.name})
+        if response.status_code != 201:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
+
     def get_run(self, parameters, scenario=None):
         """get a run with a particular parameter set
 
@@ -342,4 +373,7 @@ if __name__ == '__main__':
     print(objfun.get_result(pset2))
     print('get_run', objfun.get_run(pset2))
     print('get_run_id', objfun.get_run_by_id(1))
+    print('get_state', objfun.getState(1))
+    objfun.setState(1, LookupState.COMPLETED)
+    print('get_state', objfun.getState(1))
     #print(objfun.get_run(pset3))
