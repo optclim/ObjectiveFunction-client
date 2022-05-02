@@ -37,6 +37,13 @@ def test_param_attribs(param):
     assert param.constant is False
 
 
+def test_param_to_dict(param):
+    """check conversion to dictionary"""
+    assert param.to_dict == {'type': 'int',
+                             'minv': param.minv,
+                             'maxv': param.maxv}
+
+
 def test_param_assign_value(param):
     """check value assignment works"""
     v = 5
