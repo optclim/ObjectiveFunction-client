@@ -19,6 +19,8 @@ class Proxy:
                  url_base='http://localhost:5000/api/'):
         """constructor"""
         self._url_base = url_base
+        if self._url_base[-1] != '/':
+            self._url_base += '/'
         self._tauth = None
         self._session = requests.Session()
 
