@@ -6,7 +6,7 @@ import numpy
 from .proxy import Proxy
 from .parameter import Parameter
 from .common import RunType, LookupState
-from .common import PreliminaryRun, NewRun, Waiting
+from .common import PreliminaryRun, NewRun, Waiting, NoNewRun
 
 
 class ObjectiveFunction:
@@ -298,6 +298,66 @@ class ObjectiveFunction:
             transformed_params[p] = self.parameters[p].transform(v)
         return transformed_params
 
+    def _inv_transform_parameters(self, parameters):
+        """transform parameters from integers
+
+        :param parmeters: dictionary containing parameter values
+        """
+        transformed_params = {}
+        for p in parameters:
+            transformed_params[p] = self.parameters[p].inv_transform(
+                parameters[p])
+        return transformed_params
+
+    def get_with_state(self, state, scenario=None, with_id=False,
+                       new_state=None):
+        """get a set of parameters in a particular state
+        :param state: find run in state
+        :param scenario: the name of the scenario
+        :param with_id: when set to True also return run ID
+        :param new_state: when not None set the state of the run to new_state
+        Get a set of parameters for a run in a particular state. Optionally
+        the run transitions to new_state.
+        :return: dictionary of parameter values for which to compute the model
+        :raises LookupError: if there is no parameter set in specified state
+        """
+        if scenario is None:
+            scenario = self._scenario
+        data = {'state': state.name}
+        if new_state is not None:
+            data['new_state'] = new_state.name
+        response = self._proxy.post(
+            f'studies/{self.study}/scenarios/{scenario}/runs/with_state',
+            json=data)
+        if response.status_code == 404:
+            raise LookupError(f'no parameter set in state {state.name}')
+        elif response.status_code != 201:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
+        results = response.json()
+        values = self._inv_transform_parameters(results['values'])
+        if with_id:
+            return results['id'], values
+        else:
+            return values
+
+    def get_new(self, scenario=None, with_id=False):
+        """get a set of parameters that are not yet processed
+        :param scenario: the name of the scenario
+        :param with_id: when set to True also return run ID
+        The parameter set changes set from new to active
+        :return: dictionary of parameter values for which to compute the model
+        :raises NoNewRun: if there is no new parameter set
+        """
+        try:
+            res = self.get_with_state(LookupState.NEW, scenario=scenario,
+                                      with_id=with_id,
+                                      new_state=LookupState.ACTIVE)
+        except LookupError:
+            raise NoNewRun('no new parameter sets')
+
+        return res
+
     def get_run(self, parameters, scenario=None):
         """get a run with a particular parameter set
 
@@ -388,6 +448,10 @@ if __name__ == '__main__':
     print('get_run', objfun.get_run(pset2))
     print('get_run_id', objfun.get_run_by_id(1))
     print('get_state', objfun.getState(1))
-    objfun.setState(1, LookupState.COMPLETED)
-    print('get_state', objfun.getState(1))
+    print('get_with_state', objfun.get_with_state(LookupState.NEW))
+    print('get_with_state', objfun.get_with_state(LookupState.NEW,
+                                                  with_id=True))
+    print('get_new', objfun.get_new())
+    #objfun.setState(1, LookupState.COMPLETED)
+    #print('get_state', objfun.getState(1))
     #print(objfun.get_run(pset3))
