@@ -106,10 +106,6 @@ class ParameterInt(Parameter[int]):
             raise TypeError('maxv should be an int')
         super().__init__(value, minv, maxv, constant=constant)
 
-    def __repr__(self):
-        return f'ParameterInt({self.value}, {self.minv}, {self.maxv}, ' \
-            f'constant={self.constant})'
-
     def __eq__(self, other) -> bool:
         if not isinstance(other, ParameterInt):
             return False
@@ -164,11 +160,6 @@ class ParameterFloat(Parameter[float]):
     def resolution(self) -> float:
         """the resolution used when converting between integer and floats"""
         return self._resolution
-
-    def __repr__(self):
-        return f'ParameterFloat({self.value}, {self.minv}, {self.maxv}, ' \
-            f'resolution={self.resolution}, ' \
-            f'constant={self.constant})'
 
     def check_value(self, value: float) -> None:
         if value < self.minv - 0.99 * self.resolution \
