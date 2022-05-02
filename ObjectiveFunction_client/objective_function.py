@@ -349,11 +349,14 @@ class ObjectiveFunction:
         :return: dictionary of parameter values for which to compute the model
         :raises NoNewRun: if there is no new parameter set
         """
+        res = None
         try:
             res = self.get_with_state(LookupState.NEW, scenario=scenario,
                                       with_id=with_id,
                                       new_state=LookupState.ACTIVE)
         except LookupError:
+            pass
+        if res is None:
             raise NoNewRun('no new parameter sets')
 
         return res
@@ -420,6 +423,40 @@ class ObjectiveFunction:
 
         run['state'] = LookupState.__members__[run['state']]
         return run
+
+    def _set_data(self, run, result):
+        raise NotImplementedError
+
+    def set_result(self, parameters, result, scenario=None, force=False):
+        """set the result for a paricular parameter set
+        :param parameters: dictionary of parameters
+        :param result: result value to set
+        :param scenario: the name of the scenario
+        :param force: force setting results irrespective of state
+        """
+        if scenario is None:
+            scenario = self._scenario
+        run = self.get_run(parameters, scenario=scenario)
+
+        state = run['state']
+        if (state.value > LookupState.CONFIGURED.value
+            and state != LookupState.COMPLETED) or force:  # noqa W503
+            pass
+        else:
+            raise RuntimeError(
+                f'parameter set is in wrong state {state}')
+
+        data = self._set_data(run, result)
+        data['force'] = force
+        response = self._proxy.put(
+            f'studies/{self.study}/scenarios/{scenario}/runs/'
+            f'{run["id"]}/value',
+            json=data)
+        if response.status_code == 403:
+            raise RuntimeError(response.content)
+        elif response.status_code != 201:
+            raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+                response.status_code, response.content))
 
 
 if __name__ == '__main__':

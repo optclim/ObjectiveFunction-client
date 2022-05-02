@@ -87,6 +87,12 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
                 self._num_residuals = run['residual'].size
         return run
 
+    def _set_data(self, run, result):
+        fname = self.basedir / f'residuals_{run["id"]}.npy'
+        with open(fname, 'wb') as f:
+            numpy.save(f, result)
+        return {'path': str(fname)}
+
 
 if __name__ == '__main__':
     import sys
@@ -108,5 +114,8 @@ if __name__ == '__main__':
 
     pset1 = {'a': 0, 'b': 1, 'c': -2}
     pset2 = {'a': 0.5, 'b': 1, 'c': -2}
+    print(objfun.get_result(pset1))
+    print(objfun.get_new())
+    objfun.set_result(pset1, numpy.arange(10))
     print(objfun.get_result(pset1))
     #print(objfun.get_result(pset2))
