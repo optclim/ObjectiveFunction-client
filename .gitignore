@@ -1,3 +1,6 @@
 *~
 __pycache__
 .objfun_secrets
+.coverage
+.eggs
+ObjectiveFunction_client.egg-info
