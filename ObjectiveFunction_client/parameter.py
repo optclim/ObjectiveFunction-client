@@ -22,10 +22,10 @@ class Parameter(ABC, Generic[T]):
 
         self._minv: T = minv
         self._maxv: T = maxv
+        if self._minv >= self._maxv:
+            raise ValueError('minv must be smaller than maxv')
         self.value = value
         self._constant = bool(constant)
-        if self.minv >= self.maxv:
-            raise ValueError('minv must be smaller than maxv')
 
     @property
     def value(self) -> T:
@@ -60,17 +60,17 @@ class Parameter(ABC, Generic[T]):
 
     @abstractmethod
     def __eq__(self, other: T) -> bool:
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def transform(self, value: T) -> int:
         """transform the value to the internal storage format"""
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def inv_transform(self, dbval: int) -> T:
         """transform from the internal storage format"""
-        pass
+        pass  # pragma: no cover
 
     @property
     def to_dict(self):
