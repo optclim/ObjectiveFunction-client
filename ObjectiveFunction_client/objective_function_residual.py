@@ -93,6 +93,19 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
             numpy.save(f, result)
         return {'path': str(fname)}
 
+    def __call__(self, x, grad=None):
+        """look up parameters
+        :param x: vector containing parameter values
+        :param grad: vector of length 0
+        :type grad: numpy.ndarray
+        :raises NewRun: when lookup fails
+        :raises Waiting: when completed entries are required
+        :return: returns the value if lookup succeeds and state is completed
+                 return a random value otherwise
+        :rtype: float
+        """
+        return super().__call__(x, grad=grad)['residual']
+
 
 if __name__ == '__main__':
     import sys
@@ -115,6 +128,7 @@ if __name__ == '__main__':
     pset1 = {'a': 0, 'b': 1, 'c': -2}
     pset2 = {'a': 0.5, 'b': 1, 'c': -2}
     print(objfun.get_result(pset1))
+    print('call', objfun(list(pset1.values())))
     print(objfun.get_new())
     objfun.set_result(pset1, numpy.arange(10))
     print(objfun.get_result(pset1))

@@ -458,6 +458,23 @@ class ObjectiveFunction:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
 
+    def __call__(self, x, grad=None):
+        """look up parameters
+        :param x: vector containing parameter values
+        :param grad: vector of length 0
+        :type grad: numpy.ndarray
+        :raises NewRun: when lookup fails
+        :raises Waiting: when completed entries are required
+        :return: returns the value if lookup succeeds and state is completed
+                 return a random value otherwise
+        :rtype: float
+        """
+        if grad is not None and grad.size > 0:
+            raise RuntimeError(
+                'ObjectiveFunction only supports derivative '
+                'free optimisations')
+        return self.get_result(self.values2params(x))
+
 
 if __name__ == '__main__':
     import sys
@@ -483,7 +500,8 @@ if __name__ == '__main__':
     #print(objfun.get_result(pset1))
     print(objfun.get_result(pset2))
     print('get_run', objfun.get_run(pset2))
-    print('get_run_id', objfun.get_run_by_id(1))
+    #print('get_run_id', objfun.get_run_by_id(1))
+    print('call', objfun(list(pset2.values())))
     print('get_state', objfun.getState(1))
     print('get_with_state', objfun.get_with_state(LookupState.NEW))
     print('get_with_state', objfun.get_with_state(LookupState.NEW,
