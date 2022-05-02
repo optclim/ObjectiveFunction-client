@@ -284,6 +284,20 @@ class ObjectiveFunction:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
 
+    def _transform_parameters(self, parameters):
+        """transform parameters to integers
+
+        :param parmeters: dictionary containing parameter values
+        """
+        transformed_params = {}
+        for p in self.parameters:
+            if self.parameters[p].constant:
+                v = self.parameters[p].value
+            else:
+                v = parameters[p]
+            transformed_params[p] = self.parameters[p].transform(v)
+        return transformed_params
+
     def get_run(self, parameters, scenario=None):
         """get a run with a particular parameter set
 
@@ -295,7 +309,7 @@ class ObjectiveFunction:
 
         response = self._proxy.post(
             f'studies/{self.study}/scenarios/{scenario}/get_run',
-            json={'parameters': parameters})
+            json={'parameters': self._transform_parameters(parameters)})
         if response.status_code != 201:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
@@ -315,7 +329,7 @@ class ObjectiveFunction:
 
         response = self._proxy.post(
             f'studies/{self.study}/scenarios/{scenario}/lookup_run',
-            json={'parameters': parameters})
+            json={'parameters': self._transform_parameters(parameters)})
         if response.status_code != 201:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
