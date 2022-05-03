@@ -91,6 +91,8 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
         fname = self.basedir / f'residuals_{run["id"]}.npy'
         with open(fname, 'wb') as f:
             numpy.save(f, result)
+        if self._num_residuals is None:
+            self._num_residuals = result.size
         return {'path': str(fname)}
 
     def __call__(self, x, grad=None):
