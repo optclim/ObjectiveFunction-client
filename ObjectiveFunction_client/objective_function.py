@@ -432,7 +432,7 @@ class ObjectiveFunction:
         return run
 
     def _set_data(self, run, result):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def set_result(self, parameters, result, scenario=None, force=False):
         """set the result for a paricular parameter set
