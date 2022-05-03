@@ -6,6 +6,12 @@ from validate import Validator
 from pathlib import Path
 from os.path import expandvars
 from io import StringIO
+from functools import partial
+
+from .objective_function_misfit import ObjectiveFunctionMisfit
+from .objective_function_residual import ObjectiveFunctionResidual
+#from .objective_function_simobs import ObjectiveFunctionSimObs
+from .parameter import ParameterFloat, ParameterInt
 
 
 class ObjFunConfig:
@@ -24,6 +30,30 @@ class ObjFunConfig:
       scenario = string() # the name of the scenario
       basedir = string() # the base directory
       objfun = string(default=misfit)
+    """
+
+    parametersCfgStr = """
+    [parameters]
+      [[float_parameters]]
+        [[[__many__]]]
+          value = float() # the default value
+          min = float() # the minimum value allowed
+          max = float() # the maximum value allowed
+          resolution = float(default=1e-6) # the resolution of the parameter
+          constant = boolean(default=False) # if set to True the parameter is
+                                             # not optimised for
+      [[integer_parameters]]
+        [[[__many__]]]
+          value = integer() # the default value
+          min = integer() # the minimum value allowed
+          max = integer() # the maximum value allowed
+          constant = boolean(default=False) # if set to True the parameter is
+                                            # not optimised for
+    """
+
+    targetsCfgStr = """
+    [targets]
+      __many__ = float
     """
 
     def __init__(self, fname: Path) -> None:
@@ -48,6 +78,12 @@ class ObjFunConfig:
         validator = Validator()
 
         self._cfg = ConfigObj(StringIO(cfgData), configspec=objfunDefaults)
+
+        self._params = None
+        self._optimise_params = None
+        self._values = None
+        self._objfun = None
+        self._obsNames = None
 
         res = self._cfg.validate(validator, preserve_errors=True)
         errors = []
@@ -78,7 +114,34 @@ class ObjFunConfig:
 
     @property
     def defaultCfgStr(self):
-        return self.setupCfgStr
+        return self.setupCfgStr + '\n' \
+            + self.parametersCfgStr + '\n' \
+            + self.targetsCfgStr
+
+    def _get_params(self):
+        self._params = {}
+        self._values = {}
+
+        PARAMS = {'float_parameters': ParameterFloat,
+                  'integer_parameters': ParameterInt}
+
+        for t in PARAMS:
+            for p in self.cfg['parameters'][t]:
+                value = self.cfg['parameters'][t][p]['value']
+                minv = self.cfg['parameters'][t][p]['min']
+                maxv = self.cfg['parameters'][t][p]['max']
+                extra = {}
+                extra['constant'] = self.cfg['parameters'][t][p]['constant']
+                if t == 'float':
+                    extra['resolution'] = \
+                        self.cfg['parameters'][t][p]['resolution']
+                try:
+                    self._params[p] = PARAMS[t](value, minv, maxv, **extra)
+                except Exception as e:
+                    msg = f'problem with parameter {p}: {e}'
+                    self._log.error(msg)
+                    raise RuntimeError(msg)
+                self._values[p] = self.cfg['parameters'][t][p]['value']
 
     @property
     def cfg(self):
@@ -116,6 +179,92 @@ class ObjFunConfig:
                 self._log.error(f'no secret found for {self.app}')
                 raise RuntimeError('no secret found')
         return self._secret
+
+    @property
+    def values(self):
+        """a dictionary of the parameter values"""
+        if self._values is None:
+            self._get_params()
+        return self._values
+
+    @property
+    def parameters(self):
+        """a dictionary of parameters"""
+        if self._params is None:
+            self._get_params()
+        return self._params
+
+    @property
+    def optimise_parameters(self):
+        """a dictionary of parameters that should be optimised"""
+        if self._optimise_params is None:
+            self._optimise_params = {}
+            for p in self.parameters:
+                if not self.parameters[p].constant:
+                    self._optimise_params[p] = self.parameters[p]
+        return self._optimise_params
+
+    @property
+    def basedir(self):
+        """the base directory"""
+        if self._basedir is None:
+            self._basedir = self.expand_path(
+                Path(self.cfg['setup']['basedir']))
+            if not self._basedir.exists():
+                self._log.info(f'creating base directory {self._basedir}')
+                self._basedir.mkdir(parents=True)
+        return self._basedir
+
+    @property
+    def study(self):
+        """the name of the study"""
+        return self.cfg['setup']['study']
+
+    @property
+    def scenario(self):
+        """the name of the scenario"""
+        return self.cfg['setup']['scenario']
+
+    @property
+    def objfunType(self):
+        """the objective function type"""
+        return self.cfg['setup']['objfun']
+
+    @property
+    def objectiveFunction(self):
+        """intantiate a ObjectiveFunction object from config object"""
+        if self._objfun is None:
+            if self.objfunType == 'misfit':
+                objfun = ObjectiveFunctionMisfit
+            elif self.objfunType == 'residual':
+                objfun = ObjectiveFunctionResidual
+            elif self.objfunType == 'simobs':
+                if len(self.targets) == 0:
+                    msg = 'targets required for simobs'
+                    self._log.error(msg)
+                    raise RuntimeError(msg)
+                objfun = partial(ObjectiveFunctionSimObs,
+                                 observationNames=self.observationNames)
+            else:
+                msg = 'wrong type of objective function: ' + self.objfunType
+                self._log.error(msg)
+                raise RuntimeError(msg)
+            self._objfun = objfun(self.study, self.basedir,
+                                  self.parameters,
+                                  scenario=self.scenario,
+                                  db=self.cfg['setup']['db'])
+        return self._objfun
+
+    @property
+    def observationNames(self):
+        """the name of the observations"""
+        if self._obsNames is None:
+            self._obsNames = sorted(list(self.cfg['targets'].keys()))
+        return self._obsNames
+
+    @property
+    def targets(self):
+        return self.cfg['targets']
 
 
 if __name__ == '__main__':
