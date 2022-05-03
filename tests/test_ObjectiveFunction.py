@@ -255,7 +255,7 @@ class TestObjectiveFunctionScenario(TestObjectiveFunctionBase):
     scenario = "scenario"
 
     @pytest.fixture
-    def requests(self, objfun, requests_mock, baseurl, rundir, paramsA):
+    def requests(self, requests_mock, baseurl, rundir, paramsA):
         requests_mock.register_uri(
             'GET', baseurl + 'token', json={'token': 'some_token'})
         requests_mock.register_uri(
@@ -266,28 +266,31 @@ class TestObjectiveFunctionScenario(TestObjectiveFunctionBase):
         requests_mock.register_uri(
             'POST', baseurl + f'studies/{self.study}/create_scenario',
             status_code=201)
+
+    def test_getState_none(self, requests_mock, baseurl, objectiveA):
         requests_mock.register_uri(
             'GET', baseurl + f'studies/{self.study}/scenarios/{self.scenario}'
             '/runs/1/state', status_code=404)
-        requests_mock.register_uri(
-            'PUT', baseurl + f'studies/{self.study}/scenarios/{self.scenario}'
-            '/runs/1/state', status_code=404)
-        requests_mock.register_uri(
-            'POST', baseurl + f'studies/{self.study}/scenarios/{self.scenario}'
-            '/runs/with_state', status_code=404)
-
-    def test_getState_none(self, objectiveA):
         with pytest.raises(LookupError):
             objectiveA.getState(1)
 
-    def test_setState_none(self, objectiveA):
+    def test_setState_none(self, requests_mock, baseurl, objectiveA):
+        requests_mock.register_uri(
+            'PUT', baseurl + f'studies/{self.study}/scenarios/{self.scenario}'
+            '/runs/1/state', status_code=404)
         with pytest.raises(LookupError):
             objectiveA.setState(1, LookupState.ACTIVE)
 
-    def test_get_with_state_none(self, objectiveA):
+    def test_get_with_state_none(self, requests_mock, baseurl, objectiveA):
+        requests_mock.register_uri(
+            'POST', baseurl + f'studies/{self.study}/scenarios/{self.scenario}'
+            '/runs/with_state', status_code=404)
         with pytest.raises(LookupError):
             objectiveA.get_with_state(LookupState.NEW)
 
-    def test_get_new_none(self, objectiveA):
+    def test_get_new_none(self, requests_mock, baseurl, objectiveA):
+        requests_mock.register_uri(
+            'POST', baseurl + f'studies/{self.study}/scenarios/{self.scenario}'
+            '/runs/with_state', status_code=404)
         with pytest.raises(NoNewRun):
             objectiveA.get_new()
