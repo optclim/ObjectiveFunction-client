@@ -13,6 +13,10 @@ setup(
     include_package_data=True,
     install_requires=[
         'requests',
+        'configobj',
+        'numpy>=1.21.0',
+        'pandas',
+        'dfo-ls',
     ],
     cmdclass={'build_sphinx': BuildDoc},
     command_options={
@@ -39,6 +43,9 @@ setup(
     entry_points={
         'console_scripts': [
             'objfun-manage=ObjectiveFunction_client.manage:main',
+            'objfun-nlopt = ObjectiveFunction.optimise:main',
+            'objfun-dfols = ObjectiveFunction.dfols:main',
+            'objfun-example-model = ObjectiveFunction.example:main',
         ],
     },
     author=author,

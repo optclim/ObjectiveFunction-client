@@ -4,3 +4,5 @@ __pycache__
 .coverage
 .eggs
 ObjectiveFunction_client.egg-info
+dist
+build
