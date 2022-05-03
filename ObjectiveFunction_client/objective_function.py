@@ -103,8 +103,8 @@ class ObjectiveFunction:
                             self._log.error(
                                 f'key {k} of parameter {p} does not match')
                             error = True
-                if error:
-                    raise RuntimeError('configuration does not match database')
+            if error:
+                raise RuntimeError('configuration does not match database')
         else:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
