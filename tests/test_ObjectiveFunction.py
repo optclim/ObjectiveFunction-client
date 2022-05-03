@@ -215,6 +215,10 @@ class TestObjectiveFunctionConstParam(TestObjectiveFunctionBase):
         with pytest.raises(RuntimeError):
             objectiveA.values2params((0, 1, 3, 4))
 
+    def test_values2params_const(self, objectiveA):
+        assert objectiveA.values2params((0, 2)) == {
+            'a': 0, 'b': 1, 'c': 2}
+
     def test_active_parameters(self, objectiveA):
         assert list(objectiveA.active_parameters.keys()) == ['a', 'c']
 
@@ -227,6 +231,24 @@ class TestObjectiveFunctionNew(TestObjectiveFunctionBase):
         name = 'default_scenario'
         objectiveA.setDefaultScenario(name)
         assert objectiveA._scenario == name
+
+    def test_setDefaultScenario_existing(
+            self, requests_mock, baseurl, objectiveA):
+        name = 'scenario'
+        requests_mock.register_uri(
+            'POST', baseurl + f'studies/{self.study}/create_scenario',
+            status_code=409)
+        objectiveA.setDefaultScenario(name)
+        assert objectiveA._scenario == name
+
+    def test_setDefaultScenario_fail(
+            self, requests_mock, baseurl, objectiveA):
+        name = 'scenario'
+        requests_mock.register_uri(
+            'POST', baseurl + f'studies/{self.study}/create_scenario',
+            status_code=400)
+        with pytest.raises(RuntimeError):
+            objectiveA.setDefaultScenario(name)
 
 
 class TestObjectiveFunctionScenario(TestObjectiveFunctionBase):
