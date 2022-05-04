@@ -239,6 +239,7 @@ class ObjFunConfig:
             elif self.objfunType == 'residual':
                 objfun = ObjectiveFunctionResidual
             elif self.objfunType == 'simobs':
+                raise NotImplementedError
                 if len(self.targets) == 0:
                     msg = 'targets required for simobs'
                     self._log.error(msg)
@@ -249,10 +250,11 @@ class ObjFunConfig:
                 msg = 'wrong type of objective function: ' + self.objfunType
                 self._log.error(msg)
                 raise RuntimeError(msg)
-            self._objfun = objfun(self.study, self.basedir,
+            self._objfun = objfun(self.app, self.secret,
+                                  self.study, self.basedir,
                                   self.parameters,
                                   scenario=self.scenario,
-                                  db=self.cfg['setup']['db'])
+                                  url_base=self.baseurl)
         return self._objfun
 
     @property

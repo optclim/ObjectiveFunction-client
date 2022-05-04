@@ -20,7 +20,7 @@ class NLConfig(ObjFunConfig):
 
     def __init__(self, fname: Path) -> None:
         super().__init__(fname)
-        self._log = logging.getLogger('ObjectiveFunction.optimisecfg')
+        self._log = logging.getLogger('ObjectiveFunction_client.optimisecfg')
         self._opt = None
 
     @property
@@ -49,7 +49,7 @@ class NLConfig(ObjFunConfig):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    log = logging.getLogger('ObjectiveFunction.optimise')
+    log = logging.getLogger('ObjectiveFunction_client.optimise')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('config', type=Path,

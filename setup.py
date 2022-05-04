@@ -43,9 +43,9 @@ setup(
     entry_points={
         'console_scripts': [
             'objfun-manage=ObjectiveFunction_client.manage:main',
-            'objfun-nlopt = ObjectiveFunction.optimise:main',
-            'objfun-dfols = ObjectiveFunction.dfols:main',
-            'objfun-example-model = ObjectiveFunction.example:main',
+            'objfun-nlopt = ObjectiveFunction_client.optimise:main',
+            'objfun-dfols = ObjectiveFunction_client.dfols:main',
+            'objfun-example-model = ObjectiveFunction_client.example:main',
         ],
     },
     author=author,
