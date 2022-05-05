@@ -12,7 +12,7 @@ from .common import PreliminaryRun, NewRun, Waiting
 class DFOLSConfig(ObjFunConfig):
     def __init__(self, fname: Path) -> None:
         super().__init__(fname)
-        self._log = logging.getLogger('ObjectiveFunction.dfolscfg')
+        self._log = logging.getLogger('ObjectiveFunction_client.dfolscfg')
         if self.objfunType not in ['residual', 'simobs']:
             msg = 'objective function type must be either residual or simobs'
             self._log.error(msg)
@@ -21,7 +21,7 @@ class DFOLSConfig(ObjFunConfig):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    log = logging.getLogger('ObjectiveFunction.dfols')
+    log = logging.getLogger('ObjectiveFunction_client.dfols')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('config', type=Path,
