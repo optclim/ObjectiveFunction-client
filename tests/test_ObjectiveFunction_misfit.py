@@ -77,7 +77,7 @@ class TestObjectiveFunctionScenarioMisfit(TOFS):
         self._compare(objectiveA((0, 1, -2)), resval)
 
     def test_set_data(self, objectiveA, result):
-        assert objectiveA._set_data(
+        assert objectiveA._set_data(self.scenario,
             {'id': 1}, result['resvalue']) == {
                 result['dbname']: result['dbvalue']}
 

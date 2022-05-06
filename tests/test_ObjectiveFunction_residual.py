@@ -24,7 +24,9 @@ def objfun():
 
 @pytest.fixture
 def result(rundir):
-    fname = rundir / 'residuals_1.npy'
+    scenario = rundir / 'scenario'
+    scenario.mkdir()
+    fname = scenario / 'residuals_1.npy'
     with open(fname, 'wb') as f:
         numpy.save(f, numpy.arange(10))
     return {'resname': 'residual',
