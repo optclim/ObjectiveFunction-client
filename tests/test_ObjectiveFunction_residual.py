@@ -18,7 +18,7 @@ def rundir(tmpdir_factory):
 
 
 @pytest.fixture
-def objfun():
+def objfun(request_token):
     return ObjectiveFunctionResidual
 
 

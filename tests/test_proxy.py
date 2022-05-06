@@ -10,12 +10,6 @@ def test_proxy_fail(requests_mock, baseurl):
         Proxy('test', 'test_secret', url_base=baseurl)
 
 
-@pytest.fixture
-def request_token(requests_mock, baseurl):
-    requests_mock.register_uri(
-        'GET', baseurl + 'token', json={'token': 'some_token'})
-
-
 def test_proxy(request_token, baseurl):
     p = Proxy('test', 'test_secret', url_base=baseurl)
     assert p._token == 'some_token'

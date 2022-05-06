@@ -14,14 +14,12 @@ def rundir(tmpdir_factory):
 
 
 @pytest.fixture
-def objfun():
+def objfun(request_token):
     return ObjectiveFunction
 
 
 def test_create_fail_create_study(
         objfun, requests_mock, rundir, baseurl, paramsA):
-    requests_mock.register_uri(
-        'GET', baseurl + 'token', json={'token': 'some_token'})
     requests_mock.register_uri(
         'GET', baseurl + f'studies/study/parameters',
         status_code=404)
@@ -34,8 +32,6 @@ def test_create_fail_create_study(
 
 def test_create_fail_study(
         objfun, requests_mock, rundir, baseurl, paramsA):
-    requests_mock.register_uri(
-        'GET', baseurl + 'token', json={'token': 'some_token'})
     requests_mock.register_uri(
         'GET', baseurl + f'studies/study/parameters',
         status_code=400)
@@ -57,8 +53,6 @@ class TestObjectiveFunctionExisting:
 
     @pytest.fixture
     def requests(self, requests_mock, baseurl, params):
-        requests_mock.register_uri(
-            'GET', baseurl + 'token', json={'token': 'some_token'})
         requests_mock.register_uri(
             'GET', baseurl + f'studies/{self.study}/parameters',
             status_code=200, json=params)
@@ -127,8 +121,6 @@ class TestObjectiveFunctionBase:
 
     @pytest.fixture
     def requests(self, requests_mock, baseurl):
-        requests_mock.register_uri(
-            'GET', baseurl + 'token', json={'token': 'some_token'})
         requests_mock.register_uri(
             'GET', baseurl + f'studies/{self.study}/parameters',
             status_code=404)
@@ -283,8 +275,6 @@ class TestObjectiveFunctionScenario(TestObjectiveFunctionBase):
 
     @pytest.fixture
     def requests(self, requests_mock, baseurl, rundir, paramsA):
-        requests_mock.register_uri(
-            'GET', baseurl + 'token', json={'token': 'some_token'})
         requests_mock.register_uri(
             'GET', baseurl + f'studies/{self.study}/parameters',
             status_code=404)
