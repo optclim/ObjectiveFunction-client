@@ -73,7 +73,7 @@ class ObjectiveFunctionMisfit(ObjectiveFunction):
             run['misfit'] = run['value']
         return run
 
-    def _set_data(self, run, result):
+    def _set_data(self, scenario, run, result):
         return {'value': result}
 
     def __call__(self, x, grad=None):

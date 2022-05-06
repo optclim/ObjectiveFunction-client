@@ -87,8 +87,8 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
                 self._num_residuals = run['residual'].size
         return run
 
-    def _set_data(self, run, result):
-        fname = self.basedir / f'residuals_{run["id"]}.npy'
+    def _set_data(self, scenario, run, result):
+        fname = self.scenario_dir(scenario) / f'residuals_{run["id"]}.npy'
         with open(fname, 'wb') as f:
             numpy.save(f, result)
         if self._num_residuals is None:

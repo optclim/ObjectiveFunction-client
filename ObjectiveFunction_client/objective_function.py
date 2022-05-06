@@ -486,7 +486,7 @@ class ObjectiveFunction:
 
         return run
 
-    def _set_data(self, run, result):
+    def _set_data(self, scenario, run, result):
         raise NotImplementedError  # pragma: no cover
 
     def set_result(self, parameters, result, scenario=None, force=False):
@@ -508,7 +508,7 @@ class ObjectiveFunction:
             raise RuntimeError(
                 f'parameter set is in wrong state {state}')
 
-        data = self._set_data(run, result)
+        data = self._set_data(scenario, run, result)
         data['force'] = force
         response = self._proxy.put(
             f'studies/{self.study}/scenarios/{scenario}/runs/'
