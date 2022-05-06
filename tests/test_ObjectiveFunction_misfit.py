@@ -12,7 +12,7 @@ from test_ObjectiveFunction import TestObjectiveFunctionScenario as TOFS
 
 @pytest.fixture
 def rundir(tmpdir_factory):
-    res = tmpdir_factory.mktemp("objective_function")
+    res = tmpdir_factory.mktemp("objective_function_misfit")
     return res
 
 
@@ -45,7 +45,8 @@ class TestObjectiveFunctionScenarioMisfit(TOFS):
             f'{self.scenario}/lookup_run',
             status_code=201, json={
                 'state': LookupState.COMPLETED.name,
-                result['dbname']: result['dbvalue']})
+                result['dbname']: result['dbvalue'],
+                'id': 1})
         res = objectiveA.get_result(valuesA)
         assert res['state'] == LookupState.COMPLETED
         self._compare(res[resname], resval)
@@ -71,7 +72,8 @@ class TestObjectiveFunctionScenarioMisfit(TOFS):
             f'{self.scenario}/lookup_run',
             status_code=201, json={
                 'state': LookupState.COMPLETED.name,
-                result['dbname']: result['dbvalue']})
+                result['dbname']: result['dbvalue'],
+                'id': 1})
         self._compare(objectiveA((0, 1, -2)), resval)
 
     def test_set_data(self, objectiveA, result):
@@ -124,7 +126,8 @@ class TestObjectiveFunctionScenarioMisfit(TOFS):
             f'{self.scenario}/get_run',
             status_code=201, json={
                 'state': state.name,
-                'id': runid})
+                'id': runid,
+                'value': 10.})
         requests_mock.register_uri(
             'PUT', baseurl + f'studies/{self.study}/scenarios/'
             f'{self.scenario}/runs/{runid}/value', status_code=201)

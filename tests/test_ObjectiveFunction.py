@@ -468,7 +468,9 @@ class TestObjectiveFunctionScenario(TestObjectiveFunctionBase):
         requests_mock.register_uri(
             'POST', baseurl + f'studies/{self.study}/scenarios/'
             f'{self.scenario}/get_run',
-            status_code=201, json={'state': state.name})
+            status_code=201, json={'state': state.name,
+                                   'id': 1,
+                                   'value': 10})
         with pytest.raises(RuntimeError):
             objectiveA.set_result(valuesA, 'blub')
 

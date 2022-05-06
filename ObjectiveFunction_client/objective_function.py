@@ -7,6 +7,7 @@ from .proxy import Proxy
 from .parameter import Parameter
 from .common import RunType, LookupState
 from .common import PreliminaryRun, NewRun, Waiting, NoNewRun
+from .cache import ObjFunCache
 
 
 class ObjectiveFunction:
@@ -33,6 +34,8 @@ class ObjectiveFunction:
     :param url_base: base URL for ObjectiveFunction server API,
                      defaults to 'http://localhost:5000/api/'
     """
+
+    RESULT_TYPE = "real"
 
     def __init__(self, appname: str, secret: str,
                  study: str, basedir: Path,  # noqa C901
@@ -109,6 +112,8 @@ class ObjectiveFunction:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
 
+        self._cache = {}
+
         self._lb = None
         self._ub = None
 
@@ -121,6 +126,34 @@ class ObjectiveFunction:
     def basedir(self):
         """the basedirectory"""
         return self._basedir
+
+    def scenario_name(self, scenario=None):
+        """return scenario name"""
+        if scenario is None:
+            scenario = self._scenario
+        if scenario is None:
+            raise RuntimeError('no scenario selected')
+        name = ''
+        for c in scenario:
+            if c.isalnum():
+                name += c
+            else:
+                name += '_'
+        return name
+
+    def scenario_dir(self, scenario=None):
+        sdir = self.basedir / self.scenario_name(scenario)
+        if not sdir.exists():
+            sdir.mkdir()
+        return sdir
+
+    def cache(self, scenario=None):
+        name = self.scenario_name(scenario)
+        if name not in self._cache:
+            self._cache[name] = ObjFunCache(
+                self.scenario_dir(scenario) / 'cache.sqlite',
+                self.parameters.keys(), self.RESULT_TYPE)
+        return self._cache[name]
 
     @property
     def study(self):
@@ -377,14 +410,24 @@ class ObjectiveFunction:
         if scenario is None:
             scenario = self._scenario
 
+        transformed_params = self._transform_parameters(parameters)
+
+        try:
+            run = self.cache(scenario)[transformed_params]
+            return run
+        except LookupError:
+            pass
+
         response = self._proxy.post(
             f'studies/{self.study}/scenarios/{scenario}/get_run',
-            json={'parameters': self._transform_parameters(parameters)})
+            json={'parameters': transformed_params})
         if response.status_code != 201:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
         run = response.json()
         run['state'] = LookupState.__members__[run['state']]
+        if run['state'] == LookupState.COMPLETED:
+            self.cache(scenario)[transformed_params] = run
         return run
 
     def lookup_run(self, parameters, scenario=None):
@@ -397,13 +440,26 @@ class ObjectiveFunction:
         if scenario is None:
             scenario = self._scenario
 
+        transformed_params = self._transform_parameters(parameters)
+
+        try:
+            run = self.cache(scenario)[transformed_params]
+            return run
+        except LookupError:
+            pass
+
         response = self._proxy.post(
             f'studies/{self.study}/scenarios/{scenario}/lookup_run',
-            json={'parameters': self._transform_parameters(parameters)})
+            json={'parameters': transformed_params})
         if response.status_code != 201:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
-        return response.json()
+        run = response.json()
+        if 'state' in run:
+            run['state'] = LookupState.__members__[run['state']]
+            if run['state'] == LookupState.COMPLETED:
+                self.cache(scenario)[transformed_params] = run
+        return run
 
     def get_result(self, parameters, scenario=None):
         """look up parameters
@@ -428,7 +484,6 @@ class ObjectiveFunction:
             else:
                 raise RuntimeError(f'unknown status {run["status"]}')
 
-        run['state'] = LookupState.__members__[run['state']]
         return run
 
     def _set_data(self, run, result):
