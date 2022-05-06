@@ -24,7 +24,7 @@ def objfun():
 @pytest.fixture
 def result():
     return {'resname': 'misfit',
-            'dbname': 'misfit',
+            'dbname': 'value',
             'dbvalue': 10,
             'resvalue': 10}
 

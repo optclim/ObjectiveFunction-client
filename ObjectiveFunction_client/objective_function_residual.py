@@ -81,7 +81,7 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
         if run['state'] != LookupState.COMPLETED:
             run['residual'] = numpy.random.rand(self.num_residuals)
         else:
-            with open(run['path'], 'rb') as f:
+            with open(run['value'], 'rb') as f:
                 run['residual'] = numpy.load(f)
             if self._num_residuals is None:
                 self._num_residuals = run['residual'].size
@@ -93,7 +93,7 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
             numpy.save(f, result)
         if self._num_residuals is None:
             self._num_residuals = result.size
-        return {'path': str(fname)}
+        return {'value': str(fname)}
 
     def __call__(self, x, grad=None):
         """look up parameters

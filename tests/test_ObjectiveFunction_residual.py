@@ -28,7 +28,7 @@ def result(rundir):
     with open(fname, 'wb') as f:
         numpy.save(f, numpy.arange(10))
     return {'resname': 'residual',
-            'dbname': 'path',
+            'dbname': 'value',
             'dbvalue': str(fname),
             'resvalue': numpy.arange(10)}
 

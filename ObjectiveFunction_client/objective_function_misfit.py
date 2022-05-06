@@ -69,10 +69,12 @@ class ObjectiveFunctionMisfit(ObjectiveFunction):
         run = super().get_result(parameters, scenario=scenario)
         if run['state'] != LookupState.COMPLETED:
             run['misfit'] = random.random()
+        else:
+            run['misfit'] = run['value']
         return run
 
     def _set_data(self, run, result):
-        return {'misfit': result}
+        return {'value': result}
 
     def __call__(self, x, grad=None):
         """look up parameters
