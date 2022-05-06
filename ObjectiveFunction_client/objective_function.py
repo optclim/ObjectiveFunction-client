@@ -73,41 +73,10 @@ class ObjectiveFunction:
 
         response = self._proxy.get(f'studies/{study}/parameters')
         if response.status_code == 404:
-            self._log.debug(f'creating study {study}')
-            response = self._proxy.post('create_study',
-                                        json={
-                                            'name': self.study,
-                                            'parameters': param_dict})
-            if response.status_code != 201:
-                raise RuntimeError(f'creating study {study}')
+            self._create_study(param_dict)
         elif response.status_code == 200:
-            self._log.debug(f'loading study {study}')
             remote_param = response.json()
-            error = False
-            if self.num_params != len(remote_param):
-                self._log.error(
-                    f'number of parameters in {study} does not match')
-                error = True
-            else:
-                for p in remote_param:
-                    if p not in param_dict:
-                        self._log.error(
-                            f'parameter {p} missing from configuration')
-                        error = True
-                        continue
-                    for k in remote_param[p]:
-                        if k not in param_dict[p]:
-                            self._log.error(
-                                f'key {k} missing from configuration'
-                                f' of parameter {p}')
-                            error = True
-                            continue
-                        if param_dict[p][k] != remote_param[p][k]:
-                            self._log.error(
-                                f'key {k} of parameter {p} does not match')
-                            error = True
-            if error:
-                raise RuntimeError('configuration does not match database')
+            self._load_study(param_dict, remote_param)
         else:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
                 response.status_code, response.content))
@@ -121,6 +90,43 @@ class ObjectiveFunction:
         self._runtype = runtype
         if scenario is not None:
             self.setDefaultScenario(scenario)
+
+    def _create_study(self, param_dict):
+        self._log.debug(f'creating study {self.study}')
+        response = self._proxy.post('create_study',
+                                    json={
+                                        'name': self.study,
+                                        'parameters': param_dict})
+        if response.status_code != 201:
+            raise RuntimeError(f'creating study {self.study}')
+
+    def _load_study(self, param_dict, remote_param):
+        self._log.debug(f'loading study {self.study}')
+        error = False
+        if self.num_params != len(remote_param):
+            self._log.error(
+                f'number of parameters in {self.study} does not match')
+            error = True
+        else:
+            for p in remote_param:
+                if p not in param_dict:
+                    self._log.error(
+                        f'parameter {p} missing from configuration')
+                    error = True
+                    continue
+                for k in remote_param[p]:
+                    if k not in param_dict[p]:
+                        self._log.error(
+                            f'key {k} missing from configuration'
+                            f' of parameter {p}')
+                        error = True
+                        continue
+                    if param_dict[p][k] != remote_param[p][k]:
+                        self._log.error(
+                            f'key {k} of parameter {p} does not match')
+                        error = True
+        if error:
+            raise RuntimeError('configuration does not match database')
 
     @property
     def basedir(self):
