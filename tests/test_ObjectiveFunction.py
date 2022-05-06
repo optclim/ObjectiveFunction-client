@@ -41,65 +41,50 @@ def test_create_fail_study(
 
 
 class TestObjectiveFunctionExisting:
-    study = "study"
     scenario = None
 
-    @pytest.fixture
-    def params(self, paramsA):
-        params = {}
-        for p in paramsA:
-            params[p] = paramsA[p].to_dict
-        return params
-
-    @pytest.fixture
-    def requests(self, requests_mock, baseurl, params):
-        requests_mock.register_uri(
-            'GET', baseurl + f'studies/{self.study}/parameters',
-            status_code=200, json=params)
-        requests_mock.register_uri(
-            'POST', baseurl + 'create_study', status_code=201)
-        requests_mock.register_uri(
-            'POST', baseurl + f'studies/{self.study}/create_scenario',
-            status_code=201)
-
-    def test_no_params(self, objfun, requests, baseurl):
+    def test_no_params(self, objfun, requests_objfun_existing, baseurl, study):
         with pytest.raises(RuntimeError):
-            objfun('test', 'test_secret', self.study, rundir, {},
+            objfun('test', 'test_secret', study, rundir, {},
                    scenario=self.scenario, url_base=baseurl)
 
-    def test_existing_success(self, objfun, requests, baseurl, paramsA):
+    def test_existing_success(
+            self, objfun, requests_objfun_existing, baseurl, study, paramsA):
         p = objfun('test', 'test_secret',
-                   self.study, rundir, paramsA, scenario=self.scenario,
+                   study, rundir, paramsA, scenario=self.scenario,
                    url_base=baseurl)
-        assert p.study == self.study
+        assert p.study == study
         assert p._scenario == self.scenario
 
-    def test_existing_fail_config(self, objfun, requests, baseurl, paramsB):
+    def test_existing_fail_config(
+            self, objfun, requests_objfun_existing, baseurl, study, paramsB):
         # wrong number of parameters in config
         with pytest.raises(RuntimeError):
-            objfun('test', 'test_secret', self.study, rundir, paramsB,
+            objfun('test', 'test_secret', study, rundir, paramsB,
                    scenario=self.scenario, url_base=baseurl)
 
-    def test_existing_fail_config2(self, objfun, requests, baseurl, paramsB):
+    def test_existing_fail_config2(
+            self, objfun, requests_objfun_existing, baseurl, study, paramsB):
         # wrong parameter name in config
         paramsB['d'] = ParameterFloat(15, 10, 20)
         with pytest.raises(RuntimeError):
-            objfun('test', 'test_secret', self.study, rundir, paramsB,
+            objfun('test', 'test_secret', study, rundir, paramsB,
                    scenario=self.scenario, url_base=baseurl)
 
     def test_existing_fail_wrong_type(
-            self, objfun, requests, baseurl, paramsB):
+            self, objfun, requests_objfun_existing, baseurl, study, paramsB):
         # wrong parameter type in config
         paramsB['c'] = ParameterInt(15, 10, 20)
         with pytest.raises(RuntimeError):
-            objfun('test', 'test_secret', self.study, rundir, paramsB,
+            objfun('test', 'test_secret', study, rundir, paramsB,
                    scenario=self.scenario, url_base=baseurl)
 
-    def test_existing_fail_db(self, objfun, requests, baseurl, paramsA):
+    def test_existing_fail_db(
+            self, objfun, requests_objfun_existing, baseurl, study, paramsA):
         paramsA['d'] = ParameterFloat(15, 10, 20)
         # wrong number of parameters in db
         with pytest.raises(RuntimeError):
-            objfun('test', 'test_secret', self.study, rundir, paramsA,
+            objfun('test', 'test_secret', study, rundir, paramsA,
                    scenario=self.scenario, url_base=baseurl)
 
     @pytest.mark.parametrize("minv,maxv,resolution",
@@ -108,10 +93,11 @@ class TestObjectiveFunctionExisting:
                                  (-5, 1, 1e-6),
                                  (-5, 0, 1e-7)])
     def test_existing_fail_wrong_values(
-            self, objfun, requests, baseurl, paramsB, minv, maxv, resolution):
+            self, objfun, requests_objfun_existing, baseurl, study,
+            paramsB, minv, maxv, resolution):
         paramsB['c'] = ParameterFloat(minv, minv, maxv, resolution=resolution)
         with pytest.raises(RuntimeError):
-            objfun('test', 'test_secret', self.study, rundir, paramsB,
+            objfun('test', 'test_secret', study, rundir, paramsB,
                    scenario=self.scenario, url_base=baseurl)
 
 
@@ -120,18 +106,8 @@ class TestObjectiveFunctionBase:
     scenario = None
 
     @pytest.fixture
-    def requests(self, requests_mock, baseurl):
-        requests_mock.register_uri(
-            'GET', baseurl + f'studies/{self.study}/parameters',
-            status_code=404)
-        requests_mock.register_uri(
-            'POST', baseurl + 'create_study', status_code=201)
-        requests_mock.register_uri(
-            'POST', baseurl + f'studies/{self.study}/create_scenario',
-            status_code=201)
-
-    @pytest.fixture
-    def objectiveA(self, objfun, requests, rundir, baseurl, paramsA):
+    def objectiveA(
+            self, objfun, requests_objfun_new, rundir, baseurl, paramsA):
         return objfun('test', 'test_secret',
                       self.study, rundir, paramsA, scenario=self.scenario,
                       url_base=baseurl)
@@ -199,7 +175,8 @@ class TestObjectiveFunctionBase:
 
 class TestObjectiveFunctionConstParam(TestObjectiveFunctionBase):
     @pytest.fixture
-    def objectiveA(self, objfun, requests, rundir, baseurl, paramsC):
+    def objectiveA(
+            self, objfun, requests_objfun_new, rundir, baseurl, paramsC):
         return objfun('test', 'test_secret',
                       self.study, rundir, paramsC, scenario=self.scenario,
                       url_base=baseurl)
@@ -272,17 +249,6 @@ class TestObjectiveFunctionNew(TestObjectiveFunctionBase):
 
 class TestObjectiveFunctionScenario(TestObjectiveFunctionBase):
     scenario = "scenario"
-
-    @pytest.fixture
-    def requests(self, requests_mock, baseurl, rundir, paramsA):
-        requests_mock.register_uri(
-            'GET', baseurl + f'studies/{self.study}/parameters',
-            status_code=404)
-        requests_mock.register_uri(
-            'POST', baseurl + 'create_study', status_code=201)
-        requests_mock.register_uri(
-            'POST', baseurl + f'studies/{self.study}/create_scenario',
-            status_code=201)
 
     def test_get_run_by_id(self, requests_mock, baseurl, objectiveA):
         rid = 1

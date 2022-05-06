@@ -53,3 +53,40 @@ def baseurl():
 def request_token(requests_mock, baseurl):
     requests_mock.register_uri(
         'GET', baseurl + 'token', json={'token': 'some_token'})
+
+
+@pytest.fixture
+def study():
+    return "study"
+
+
+@pytest.fixture
+def params(paramsA):
+    params = {}
+    for p in paramsA:
+        params[p] = paramsA[p].to_dict
+    return params
+
+
+@pytest.fixture
+def requests_objfun_new(requests_mock, baseurl, study):
+    requests_mock.register_uri(
+        'GET', baseurl + f'studies/{study}/parameters',
+        status_code=404)
+    requests_mock.register_uri(
+        'POST', baseurl + 'create_study', status_code=201)
+    requests_mock.register_uri(
+        'POST', baseurl + f'studies/{study}/create_scenario',
+        status_code=201)
+
+
+@pytest.fixture
+def requests_objfun_existing(requests_mock, baseurl, study, params):
+    requests_mock.register_uri(
+        'GET', baseurl + f'studies/{study}/parameters',
+        status_code=200, json=params)
+    requests_mock.register_uri(
+        'POST', baseurl + 'create_study', status_code=201)
+    requests_mock.register_uri(
+        'POST', baseurl + f'studies/{study}/create_scenario',
+        status_code=201)
