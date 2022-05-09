@@ -10,7 +10,7 @@ from functools import partial
 
 from .objective_function_misfit import ObjectiveFunctionMisfit
 from .objective_function_residual import ObjectiveFunctionResidual
-#from .objective_function_simobs import ObjectiveFunctionSimObs
+from .objective_function_simobs import ObjectiveFunctionSimObs
 from .parameter import ParameterFloat, ParameterInt
 
 
@@ -239,7 +239,6 @@ class ObjFunConfig:
             elif self.objfunType == 'residual':
                 objfun = ObjectiveFunctionResidual
             elif self.objfunType == 'simobs':
-                raise NotImplementedError
                 if len(self.targets) == 0:
                     msg = 'targets required for simobs'
                     self._log.error(msg)
