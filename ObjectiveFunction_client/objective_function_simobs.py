@@ -2,7 +2,7 @@ __all__ = ['ObjectiveFunctionSimObs']
 
 from typing import Mapping, Sequence
 from pathlib import Path
-import random
+import numpy
 import pandas
 import logging
 
@@ -128,10 +128,9 @@ class ObjectiveFunctionSimObs(ObjectiveFunction):
 
         run = super().get_result(parameters, scenario=scenario)
         if run['state'] != LookupState.COMPLETED:
-            result = {}
-            for n in self.observationNames:
-                result[n] = random.random()
-            result = pandas.Series(result)
+            result = pandas.Series(
+                numpy.random.rand(self.num_residuals),
+                index=self.observationNames)
         else:
             result = pandas.read_json(run['value'], typ='series')
             self._check_simobs(result)
