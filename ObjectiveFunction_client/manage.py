@@ -16,6 +16,14 @@ def studies(proxy):
     return response.json()['data']
 
 
+def delete_study(proxy, study):
+
+    response = proxy.delete(f'studies/{study}')
+    if response.status_code != 200:
+        raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+            response.status_code, response.content))
+
+
 def scenarios(proxy, study):
 
     response = proxy.get(f'studies/{study}/scenarios')
@@ -34,6 +42,14 @@ def runs(proxy, study, scenario):
     return response.json()['data']
 
 
+def delete_scenario(proxy, study, scenario):
+
+    response = proxy.delete(f'studies/{study}/scenarios/{scenario}')
+    if response.status_code != 200:
+        raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
+            response.status_code, response.content))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--baseurl',
@@ -46,8 +62,13 @@ def main():
                         help="config file to read")
     parser.add_argument('-s', '--study',
                         help="get all scenarios for a particular study")
+    parser.add_argument('-d', '--delete-study',
+                        help="delete a study")
     parser.add_argument('-S', '--scenario',
                         help="get all runs for a particular scenario")
+
+    parser.add_argument('-D', '--delete-scenario',
+                        help="delete a particular scenario")
     args = parser.parse_args()
 
     app = None
@@ -69,12 +90,18 @@ def main():
 
     if args.study is not None:
         if args.scenario:
-            for r in runs(proxy, args.study, args. scenario):
+            for r in runs(proxy, args.study, args.scenario):
                 print(r)
+        elif args.delete_scenario:
+            delete_scenario(proxy, args.study, args.delete_scenario)
         else:
             for s in scenarios(proxy, args.study):
                 print(s)
     else:
+        if args.scenario or args.delete_scenario:
+            parser.error('no study specified')
+        if args.delete_study:
+            delete_study(proxy, args.delete_study)
         for s in studies(proxy):
             print(s)
 
