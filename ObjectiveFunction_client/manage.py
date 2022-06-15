@@ -52,8 +52,7 @@ def delete_scenario(proxy, study, scenario):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--baseurl',
-                        default="http://localhost:5000/api/", help='API url')
+    parser.add_argument('-b', '--baseurl', help='API url')
     parser.add_argument('-a', '--app',
                         help="the ObjectiveFunction app")
     parser.add_argument('-p', '--password',
@@ -71,22 +70,9 @@ def main():
                         help="delete a particular scenario")
     args = parser.parse_args()
 
-    app = None
-    password = None
-    baseurl = None
-    if args.config is not None:
-        cfg = ObjFunConfig(args.config)
-        app = cfg.app
-        password = cfg.secret
-        baseurl = cfg.baseurl
-    if args.app is not None:
-        app = args.app
-    if args.password is not None:
-        password = args.password
-    if args.baseurl is not None:
-        baseurl = args.baseurl
-
-    proxy = Proxy(app, password, url_base=baseurl)
+    cfg = ObjFunConfig(fname=args.config, app=args.app,
+                       baseurl=args.baseurl, secret=args.password)
+    proxy = Proxy(cfg.app, cfg.secret, url_base=cfg.baseurl)
 
     if args.study is not None:
         if args.scenario:

@@ -57,15 +57,35 @@ class ObjFunConfig:
       __many__ = float
     """
 
-    def __init__(self, fname: Path) -> None:
+    def __init__(self,
+                 fname: Path = None,
+                 app: str = None,
+                 baseurl: str = None,
+                 secret: str = None) -> None:
         self._log = logging.getLogger('ObjectiveFunction.config')
 
+        self._basedir = None
+        self._path = Path.cwd()
+        self._cfg = None
+        self._params = None
+        self._optimise_params = None
+        self._values = None
+        self._objfun = None
+        self._obsNames = None
+        self._proxy = None
+
+        if fname is not None:
+            self._read(fname)
+        self._app = app
+        self._baseurl = baseurl
+        self._secret = secret
+
+    def _read(self, fname: Path) -> None:
         if not fname.is_file():
             msg = f'no such configuration file {fname}'
             self._log.error(msg)
             raise RuntimeError(msg)
 
-        self._basedir = None
         self._path = fname.parent
 
         # read config file into string
@@ -79,12 +99,6 @@ class ObjFunConfig:
         validator = Validator()
 
         self._cfg = ConfigObj(StringIO(cfgData), configspec=objfunDefaults)
-
-        self._params = None
-        self._optimise_params = None
-        self._values = None
-        self._objfun = None
-        self._obsNames = None
 
         res = self._cfg.validate(validator, preserve_errors=True)
         errors = []
@@ -107,8 +121,6 @@ class ObjFunConfig:
             for e in errors:
                 self._log.error(e)
             raise RuntimeError(msg)
-
-        self._secret = None
 
     def expand_path(self, path):
         return (self._path / path).absolute()
@@ -147,15 +159,21 @@ class ObjFunConfig:
     @property
     def cfg(self):
         """a dictionary containing the configuration"""
+        if self._cfg is None:
+            raise RuntimeError('no configuration file loaded')
         return self._cfg
 
     @property
     def baseurl(self):
-        return self.cfg['setup']['baseurl']
+        if self._baseurl is None:
+            self._baseurl = self.cfg['setup']['baseurl']
+        return self._baseurl
 
     @property
     def app(self):
-        return self.cfg['setup']['app']
+        if self._app is None:
+            self._app = self.cfg['setup']['app']
+        return self._app
 
     @property
     def secret(self):
