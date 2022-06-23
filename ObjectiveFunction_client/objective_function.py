@@ -263,6 +263,7 @@ class ObjectiveFunction:
         :type name: str
         :param runtype: the type of the run
         """
+        name = self.scenario_name(name)
         if runtype is None:
             runtype = self._runtype
 
@@ -285,8 +286,7 @@ class ObjectiveFunction:
         :param runid: the run ID
         :param scenario: the name of the scenario
         """
-        if scenario is None:
-            scenario = self._scenario
+        scenario = self.scenario_name(scenario)
 
         response = self._proxy.get(
             f'studies/{self.study}/scenarios/{scenario}/runs/{runid}')
@@ -301,8 +301,7 @@ class ObjectiveFunction:
         :param runid: the run ID
         :param scenario: the name of the scenario
         """
-        if scenario is None:
-            scenario = self._scenario
+        scenario = self.scenario_name(scenario)
         response = self._proxy.get(
             f'studies/{self.study}/scenarios/{scenario}/runs/{runid}/state')
         if response.status_code == 404:
@@ -319,8 +318,7 @@ class ObjectiveFunction:
         :param state: the new state
         :param scenario: the name of the scenario
         """
-        if scenario is None:
-            scenario = self._scenario
+        scenario = self.scenario_name(scenario)
         response = self._proxy.put(
             f'studies/{self.study}/scenarios/{scenario}/runs/{runid}/state',
             json={'state': state.name})
@@ -367,8 +365,7 @@ class ObjectiveFunction:
         :return: dictionary of parameter values for which to compute the model
         :raises LookupError: if there is no parameter set in specified state
         """
-        if scenario is None:
-            scenario = self._scenario
+        scenario = self.scenario_name(scenario)
         data = {'state': state.name}
         if new_state is not None:
             data['new_state'] = new_state.name
@@ -413,8 +410,7 @@ class ObjectiveFunction:
         :param parmeters: dictionary containing parameter values
         :param scenario: the name of the scenario
         """
-        if scenario is None:
-            scenario = self._scenario
+        scenario = self.scenario_name(scenario)
 
         transformed_params = self._transform_parameters(parameters)
 
@@ -442,9 +438,7 @@ class ObjectiveFunction:
         :param parmeters: dictionary containing parameter values
         :param scenario: the name of the scenario
         """
-
-        if scenario is None:
-            scenario = self._scenario
+        scenario = self.scenario_name(scenario)
 
         transformed_params = self._transform_parameters(parameters)
 
@@ -459,7 +453,7 @@ class ObjectiveFunction:
             json={'parameters': transformed_params})
         if response.status_code != 201:
             raise RuntimeError('[HTTP {0}]: Content: {1}'.format(
-                response.status_code, response.content))
+                response.status_code, response.url, response.content))
         run = response.json()
         if 'state' in run:
             run['state'] = LookupState.__members__[run['state']]
@@ -502,8 +496,7 @@ class ObjectiveFunction:
         :param scenario: the name of the scenario
         :param force: force setting results irrespective of state
         """
-        if scenario is None:
-            scenario = self._scenario
+        scenario = self.scenario_name(scenario)
         run = self.get_run(parameters, scenario=scenario)
 
         state = run['state']
