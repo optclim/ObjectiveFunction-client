@@ -129,7 +129,7 @@ class ObjectiveFunctionSimObs(ObjectiveFunction):
         run = super().get_result(parameters, scenario=scenario)
         if run['state'] != LookupState.COMPLETED:
             result = pandas.Series(
-                numpy.random.rand(self.num_residuals),
+                100 * numpy.random.rand(self.num_residuals),
                 index=self.observationNames)
         else:
             result = pandas.read_json(run['value'], typ='series')

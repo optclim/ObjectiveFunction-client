@@ -68,7 +68,7 @@ class ObjectiveFunctionMisfit(ObjectiveFunction):
 
         run = super().get_result(parameters, scenario=scenario)
         if run['state'] != LookupState.COMPLETED:
-            run['misfit'] = random.random()
+            run['misfit'] = 100 * random.random()
         else:
             run['misfit'] = run['value']
         return run

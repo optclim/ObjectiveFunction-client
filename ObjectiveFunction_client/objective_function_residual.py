@@ -79,7 +79,7 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
 
         run = super().get_result(parameters, scenario=scenario)
         if run['state'] != LookupState.COMPLETED:
-            run['residual'] = numpy.random.rand(self.num_residuals)
+            run['residual'] = 100 * numpy.random.rand(self.num_residuals)
         else:
             with open(run['value'], 'rb') as f:
                 run['residual'] = numpy.load(f)
