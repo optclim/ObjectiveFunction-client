@@ -20,6 +20,15 @@ class ObjFunConfig:
 
     :param fname: the name of the configuration file
     :type fname: Path
+    :param app: the application name
+    :type app: str
+    :param baseurl: base URL for ObjectiveFunction server API
+    :type baseurl: str
+    :param secret: the secret associated with the app name
+    :type secret: str
+
+    The keyword arguments app, baseurl and secret override the values that
+    may be in the configuration file
     """
 
     setupCfgStr = """
@@ -165,18 +174,21 @@ class ObjFunConfig:
 
     @property
     def baseurl(self):
+        """base URL for ObjectiveFunction server API"""
         if self._baseurl is None:
             self._baseurl = self.cfg['setup']['baseurl']
         return self._baseurl
 
     @property
     def app(self):
+        """the application name"""
         if self._app is None:
             self._app = self.cfg['setup']['app']
         return self._app
 
     @property
     def secret(self):
+        """the secret associated with the app name"""
         if self._secret is None:
             pwname = '.objfun_secrets'
             for p in [self.expand_path(pwname), Path.home() / pwname]:
@@ -284,6 +296,7 @@ class ObjFunConfig:
 
     @property
     def targets(self):
+        """the targets"""
         return pandas.Series(self.cfg['targets'])
 
 

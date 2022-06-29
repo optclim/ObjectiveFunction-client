@@ -134,7 +134,13 @@ class ObjectiveFunction:
         return self._basedir
 
     def scenario_name(self, scenario=None):
-        """return scenario name"""
+        """return scenario name
+
+        :param scenario: when not None override default scenario
+        :type scenario: str
+
+        The characters that are not alpha-numeric will get replaced by '_'
+        """
         if scenario is None:
             scenario = self._scenario
         if scenario is None:
@@ -148,12 +154,27 @@ class ObjectiveFunction:
         return name
 
     def scenario_dir(self, scenario=None):
+        """get the directory associated with the scenario
+
+        :param scenario: when not None override default scenario
+        :type scenario: str
+
+        create the scenario directory if it does not exist
+        """
         sdir = self.basedir / self.scenario_name(scenario)
         if not sdir.exists():
             sdir.mkdir()
         return sdir
 
     def cache(self, scenario=None):
+        """return the cache associated with a scenario
+
+        :param scenario: when not None override default scenario
+        :type scenario: str
+
+        create a sqlite database containing a cache of lookup table
+        entries that are in the COMPLETED state
+        """
         name = self.scenario_name(scenario)
         if name not in self._cache:
             self._cache[name] = ObjFunCache(
@@ -163,6 +184,7 @@ class ObjectiveFunction:
 
     @property
     def study(self):
+        """the study"""
         return self._study
 
     @property
@@ -243,6 +265,7 @@ class ObjectiveFunction:
 
     def params2values(self, params, include_constant=True):
         """create an array of values from a dictionary of parameters
+
         :param params: a dictionary of parameters
         :param include_constant: set to False to exclude constant parameters
         :return: a array of values
@@ -284,7 +307,9 @@ class ObjectiveFunction:
         """get a run with a particular ID
 
         :param runid: the run ID
-        :param scenario: the name of the scenario
+        :type runid: int
+        :param scenario: when not None override default scenario
+        :type scenario: str
         """
         scenario = self.scenario_name(scenario)
 
@@ -299,7 +324,9 @@ class ObjectiveFunction:
         """get state of a particular run
 
         :param runid: the run ID
-        :param scenario: the name of the scenario
+        :type runid: int
+        :param scenario: when not None override default scenario
+        :type scenario: str
         """
         scenario = self.scenario_name(scenario)
         response = self._proxy.get(
@@ -315,8 +342,10 @@ class ObjectiveFunction:
     def setState(self, runid, state, scenario=None):
         """set the state of run
         :param runid: ID of run
+        :type runid: int
         :param state: the new state
-        :param scenario: the name of the scenario
+        :param scenario: when not None override default scenario
+        :type scenario: str
         """
         scenario = self.scenario_name(scenario)
         response = self._proxy.put(
@@ -356,14 +385,18 @@ class ObjectiveFunction:
     def get_with_state(self, state, scenario=None, with_id=False,
                        new_state=None):
         """get a set of parameters in a particular state
+
         :param state: find run in state
-        :param scenario: the name of the scenario
+        :param scenario: when not None override default scenario
+        :type scenario: str
         :param with_id: when set to True also return run ID
+        :type with_id: bool
         :param new_state: when not None set the state of the run to new_state
-        Get a set of parameters for a run in a particular state. Optionally
-        the run transitions to new_state.
         :return: dictionary of parameter values for which to compute the model
         :raises LookupError: if there is no parameter set in specified state
+
+        Get a set of parameters for a run in a particular state. Optionally
+        the run transitions to new_state.
         """
         scenario = self.scenario_name(scenario)
         data = {'state': state.name}
@@ -385,12 +418,15 @@ class ObjectiveFunction:
             return values
 
     def get_new(self, scenario=None, with_id=False):
-        """get a set of parameters that are not yet processed
-        :param scenario: the name of the scenario
+        """get a set of parameters that is in the NEW state
+
+        :param scenario: when not None override default scenario
+        :type scenario: str
         :param with_id: when set to True also return run ID
-        The parameter set changes set from new to active
         :return: dictionary of parameter values for which to compute the model
         :raises NoNewRun: if there is no new parameter set
+
+        The parameter set changes set from new to active
         """
         res = None
         try:
@@ -408,7 +444,8 @@ class ObjectiveFunction:
         """get a run with a particular parameter set
 
         :param parmeters: dictionary containing parameter values
-        :param scenario: the name of the scenario
+        :param scenario: when not None override default scenario
+        :type scenario: str
         """
         scenario = self.scenario_name(scenario)
 
@@ -436,7 +473,8 @@ class ObjectiveFunction:
         """look up parameters
 
         :param parmeters: dictionary containing parameter values
-        :param scenario: the name of the scenario
+        :param scenario: when not None override default scenario
+        :type scenario: str
         """
         scenario = self.scenario_name(scenario)
 
@@ -463,8 +501,10 @@ class ObjectiveFunction:
 
     def get_result(self, parameters, scenario=None):
         """look up parameters
+
         :param parms: dictionary containing parameter values
-        :param scenario: the name of the scenario
+        :param scenario: when not None override default scenario
+        :type scenario: str
         :raises PreliminaryRun: when lookup fails
         :raises NewRun: when preliminary run has been called again
         :raises Waiting: when completed entries are required
@@ -491,10 +531,13 @@ class ObjectiveFunction:
 
     def set_result(self, parameters, result, scenario=None, force=False):
         """set the result for a paricular parameter set
+
         :param parameters: dictionary of parameters
         :param result: result value to set
-        :param scenario: the name of the scenario
+        :param scenario: when not None override default scenario
+        :type scenario: str
         :param force: force setting results irrespective of state
+        :type force: bool
         """
         scenario = self.scenario_name(scenario)
         run = self.get_run(parameters, scenario=scenario)
@@ -521,6 +564,7 @@ class ObjectiveFunction:
 
     def __call__(self, x, grad=None):
         """look up parameters
+
         :param x: vector containing parameter values
         :param grad: vector of length 0
         :type grad: numpy.ndarray
@@ -558,16 +602,16 @@ if __name__ == '__main__':
     pset1 = {'a': 0, 'b': 1, 'c': -2}
     pset2 = {'a': 0.5, 'b': 1, 'c': -2}
     pset3 = {'a': 0.5, 'b': 1.5, 'c': -2}
-    #print(objfun.get_result(pset1))
+    # print(objfun.get_result(pset1))
     print(objfun.get_result(pset2))
     print('get_run', objfun.get_run(pset2))
-    #print('get_run_id', objfun.get_run_by_id(1))
+    # print('get_run_id', objfun.get_run_by_id(1))
     print('call', objfun(list(pset2.values())))
     print('get_state', objfun.getState(1))
     print('get_with_state', objfun.get_with_state(LookupState.NEW))
     print('get_with_state', objfun.get_with_state(LookupState.NEW,
                                                   with_id=True))
     print('get_new', objfun.get_new())
-    #objfun.setState(1, LookupState.COMPLETED)
-    #print('get_state', objfun.getState(1))
-    #print(objfun.get_run(pset3))
+    # objfun.setState(1, LookupState.COMPLETED)
+    # print('get_state', objfun.getState(1))
+    # print(objfun.get_run(pset3))

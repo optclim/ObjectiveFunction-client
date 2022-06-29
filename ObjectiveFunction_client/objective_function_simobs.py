@@ -14,7 +14,7 @@ from .common import RunType, LookupState
 class ObjectiveFunctionSimObs(ObjectiveFunction):
     """class maintaining a lookup table for an objective function
 
-    store the name of a file containing the residuals
+    store the name of a file containing the simulated observations
 
     :param study: the name of the study
     :type study: str
@@ -85,6 +85,7 @@ class ObjectiveFunctionSimObs(ObjectiveFunction):
 
     @property
     def observationNames(self):
+        """a list of the observation names"""
         return self._obsNames
 
     @property
@@ -118,7 +119,8 @@ class ObjectiveFunctionSimObs(ObjectiveFunction):
         """look up parameters
 
         :param parms: dictionary containing parameter values
-        :param scenario: the name of the scenario
+        :param scenario: when not None override default scenario
+        :type scenario: str
         :raises NewRun: when lookup fails
         :raises Waiting: when completed entries are required
         :return: returns the value if lookup succeeds and state is completed
@@ -145,6 +147,7 @@ class ObjectiveFunctionSimObs(ObjectiveFunction):
 
     def __call__(self, x, grad=None):
         """look up parameters
+
         :param x: vector containing parameter values
         :param grad: vector of length 0
         :type grad: numpy.ndarray

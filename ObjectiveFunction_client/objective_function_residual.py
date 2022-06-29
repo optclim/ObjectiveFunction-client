@@ -68,8 +68,10 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
 
     def get_result(self, parameters, scenario=None):
         """look up parameters
+
         :param parms: dictionary containing parameter values
-        :param scenario: the name of the scenario
+        :param scenario: when not None override default scenario
+        :type scenario: str
         :raises PreliminaryRun: when lookup fails
         :raises NewRun: when preliminary run has been called again
         :raises Waiting: when completed entries are required
@@ -97,6 +99,7 @@ class ObjectiveFunctionResidual(ObjectiveFunction):
 
     def __call__(self, x, grad=None):
         """look up parameters
+
         :param x: vector containing parameter values
         :param grad: vector of length 0
         :type grad: numpy.ndarray
@@ -134,4 +137,4 @@ if __name__ == '__main__':
     print(objfun.get_new())
     objfun.set_result(pset1, numpy.arange(10))
     print(objfun.get_result(pset1))
-    #print(objfun.get_result(pset2))
+    # print(objfun.get_result(pset2))
