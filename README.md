@@ -1,3 +1,6 @@
+[![Documentation Status](https://readthedocs.org/projects/objectivefunction-client/badge/?version=latest)](https://objectivefunction-client.readthedocs.io/en/latest/?badge=latest)
+
+
 # ObjectiveFunction-client
 
 
