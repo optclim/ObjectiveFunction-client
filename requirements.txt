@@ -1,0 +1,5 @@
+requests
+configobj
+pandas
+# for testing
+requests_mock

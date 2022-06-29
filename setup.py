@@ -38,6 +38,7 @@ setup(
         ],
         'testing': [
             'pytest',
+            'requests_mock',
         ],
     },
     entry_points={
