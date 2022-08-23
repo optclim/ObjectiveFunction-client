@@ -1,3 +1,4 @@
+from .__version__ import __version__  # noqa: F401
 from .common import *  # noqa: F401,F403
 from .config import *  # noqa: F401,F403
 from .parameter import *   # noqa: F401, F403
