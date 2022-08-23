@@ -2,6 +2,7 @@
 [![test package ObjectiveFunction-client](https://github.com/optclim/ObjectiveFunction-client/actions/workflows/pythonapp.yml/badge.svg)](https://github.com/optclim/ObjectiveFunction-client/actions/workflows/pythonapp.yml)
 
 # ObjectiveFunction-client
+The ObjectiveFunction-client is part of the Optclim3 blackbox optimisation framework. It provides a set of python proxy classes that communicate with the [ObjectiveFunction-server](https://github.com/optclim/ObjectiveFunction-server).
 
 
 ## testing
